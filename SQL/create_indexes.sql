@@ -1,0 +1,13 @@
+CREATE INDEX idx_reservations_user_id ON reservations(user_id);
+CREATE INDEX idx_reservations_ticket_id ON reservations(ticket_id);
+CREATE INDEX idx_payments_user_id ON payments(user_id);
+CREATE INDEX idx_payments_reservation_id ON payments(reservation_id);
+CREATE INDEX idx_reports_reservation_id ON reports(reservation_id);
+CREATE INDEX idx_tickets_ticket_date_time ON tickets(ticket_date_time);
+CREATE INDEX idx_tickets_category ON tickets(category);
+CREATE INDEX idx_payments_transaction_status ON payments(transaction_status);
+CREATE INDEX idx_users_account_status ON users(account_status);
+CREATE INDEX idx_tickets_price ON tickets(price);
+CREATE INDEX idx_tickets_sport_type ON tickets(sport_type);
+CREATE INDEX idx_reservations_reservation_status ON reservations(reservation_status);
+CREATE INDEX idx_users_role ON users(role);
