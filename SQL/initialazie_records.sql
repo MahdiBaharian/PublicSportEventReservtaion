@@ -1,0 +1,91 @@
+INSERT INTO users (first_name, last_name, username, email, phone_number, password_hash, role, city, account_status) VALUES
+('علی', 'رضایی', 'alireza', 'ali@example.com', '09121111111', 'hash1', 'spectator', 'تهران', 'active'),
+('محمد', 'احمدی', 'mohammada', 'mohammad@example.com', '09122222222', 'hash2', 'spectator', 'تهران', 'active'),
+('زهرا', 'کریمی', 'zahrak', 'zahra@example.com', '09353333333', 'hash3', 'spectator', 'اصفهان', 'active'),
+('رضا', 'حسینی', 'rezah', 'reza@example.com', '09134444444', 'hash4', 'spectator', 'مشهد', 'active'),
+('مریم', 'صادقی', 'maryams', 'maryam@example.com', '09145555555', 'hash5', 'spectator', 'تبریز', 'active'),
+('حسین', 'موسوی', 'hosseinm', 'hossein@example.com', '09156666666', 'hash6', 'spectator', 'شیراز', 'active'),
+('سارا', 'اکبری', 'saraa', 'sara@example.com', '09177777777', 'hash7', 'spectator', 'تهران', 'active'),
+('امیر', 'محمدی', 'amirm', 'amir@example.com', '09188888888', 'hash8', 'spectator', 'کرج', 'inactive'),
+('پشتیبان', 'یک', 'admin1', 'admin1@tickets.com', '09199999999', 'adminhash1', 'admin', 'تهران', 'active'),
+('پشتیبان', 'دو', 'admin2', 'admin2@tickets.com', '09100000000', 'adminhash2', 'admin', 'اصفهان', 'active');
+
+INSERT INTO tickets (sport_type, home_team, away_team, ticket_date_time, venue_city, price, total_capacity, remaining_capacity, category) VALUES
+('football', 'پرسپولیس', 'استقلال', CURRENT_TIMESTAMP + INTERVAL '2 days', 'تهران', 150000.00, 80000, 500, 'Regular'),
+('football', 'پرسپولیس', 'استقلال', CURRENT_TIMESTAMP + INTERVAL '2 days', 'تهران', 300000.00, 80000, 50, 'VIP'),
+('football', 'سپاهان', 'تراکتور', CURRENT_TIMESTAMP + INTERVAL '4 days', 'اصفهان', 100000.00, 45000, 1200, 'Regular'),
+('volleyball', 'پیکان', 'شهداب یزد', CURRENT_TIMESTAMP + INTERVAL '1 day', 'تهران', 80000.00, 3000, 150, 'Premium'),
+('basketball', 'شهرداری گرگان', 'ذوب آهن', CURRENT_TIMESTAMP + INTERVAL '5 days', 'اصفهان', 70000.00, 6000, 0, 'Regular'),
+('football', 'استقلال', 'ملوان', CURRENT_TIMESTAMP + INTERVAL '6 days', 'تهران', 120000.00, 80000, 800, 'Regular'),
+('volleyball', 'ایران', 'ایتالیا', CURRENT_TIMESTAMP + INTERVAL '7 days', 'تهران', 250000.00, 12000, 2000, 'Premium'),
+('football', 'هوادار', 'شمس آذر', CURRENT_TIMESTAMP - INTERVAL '3 days', 'تهران', 50000.00, 30000, 10, 'Regular'),
+('football', 'ذوب آهن', 'سپاهان', CURRENT_TIMESTAMP + INTERVAL '10 days', 'اصفهان', 90000.00, 45000, 400, 'Regular'),
+('basketball', 'مهرام', 'طبیعت', CURRENT_TIMESTAMP + INTERVAL '12 days', 'تهران', 60000.00, 12000, 300, 'Regular'),
+('football', 'تراکتور', 'فولاد', CURRENT_TIMESTAMP + INTERVAL '8 days', 'تبریز', 80000.00, 50000, 2000, 'Regular'),
+('volleyball', 'شهرداری ارومیه', 'پاس گرگان', CURRENT_TIMESTAMP + INTERVAL '2 days', 'ارومیه', 60000.00, 4000, 100, 'Premium'),
+('basketball', 'پالایش نفت آبادان', 'مس کرمان', CURRENT_TIMESTAMP + INTERVAL '3 days', 'آبادان', 50000.00, 3000, 50, 'Regular'),
+('football', 'گل گهر', 'نساجی', CURRENT_TIMESTAMP + INTERVAL '11 days', 'سیرجان', 70000.00, 15000, 300, 'Regular'),
+('football', 'آلومینیوم اراک', 'مس رفسنجان', CURRENT_TIMESTAMP + INTERVAL '14 days', 'اراک', 60000.00, 15000, 500, 'Regular'),
+('volleyball', 'فولاد سیرجان', 'هورسان رامسر', CURRENT_TIMESTAMP + INTERVAL '4 days', 'سیرجان', 75000.00, 3000, 200, 'Regular'),
+('basketball', 'لیموندیس', 'کاله', CURRENT_TIMESTAMP + INTERVAL '6 days', 'شیراز', 65000.00, 2500, 150, 'Regular'),
+('football', 'صنعت نفت', 'پیکان', CURRENT_TIMESTAMP - INTERVAL '1 days', 'آبادان', 40000.00, 10000, 0, 'Regular'),
+('football', 'استقلال خوزستان', 'هوادار', CURRENT_TIMESTAMP + INTERVAL '9 days', 'اهواز', 50000.00, 12000, 1000, 'Regular'),
+('volleyball', 'نیان الکترونیک', 'گیتی پسند', CURRENT_TIMESTAMP + INTERVAL '5 days', 'مشهد', 85000.00, 4000, 600, 'Premium');
+
+INSERT INTO match_details (ticket_id, organizer, tournament_name, venue_name, facilities) VALUES
+(1, 'سازمان لیگ', 'لیگ برتر فوتبال ایران', 'ورزشگاه آزادی', 'دسترسی به بوفه غرب'),
+(2, 'سازمان لیگ', 'لیگ برتر فوتبال ایران', 'ورزشگاه آزادی', 'پذیرایی ویژه، پارکینگ اختصاصی، صندلی چرمی مبله'),
+(3, 'هیئت فوتبال', 'لیگ برتر فوتبال ایران', 'ورزشگاه نقش جهان', 'بدون امکانات خاص'),
+(4, 'فدراسیون والیبال', 'لیگ برتر والیبال', 'سالن فدراسیون والیبال', 'سقف سرپوشیده، تهویه مطبوع'),
+(5, 'فدراسیون بسکتبال', 'لیگ برتر بسکتبال', 'سالن ۲۵ آبان', 'نزدیک به خروجی اضطراری'),
+(6, 'سازمان لیگ', 'لیگ برتر فوتبال ایران', 'ورزشگاه آزادی', 'دسترسی به سرویس بهداشتی شرق'),
+(7, 'فدراسیون والیبال', 'لیگ ملت‌های والیبال', 'سالن ۱۲ هزار نفری آزادی', 'پذیرایی میان‌وعده، اینترنت رایگان'),
+(8, 'هیئت فوتبال', 'لیگ برتر فوتبال ایران', 'ورزشگاه تختی تهران', 'بدون امکانات خاص'),
+(9, 'سازمان لیگ', 'لیگ برتر فوتبال ایران', 'ورزشگاه نقش جهان', 'دید عالی به نیمکت ذخیره‌ها'),
+(10, 'فدراسیون بسکتبال', 'سوپر لیگ بسکتبال', 'سالن ۱۲ هزار نفری آزادی', 'تهویه مناسب'),
+(11, 'هیئت فوتبال', 'لیگ برتر فوتبال ایران', 'ورزشگاه یادگار امام', 'دسترسی به مترو'),
+(12, 'فدراسیون والیبال', 'لیگ برتر والیبال', 'سالن غدیر ارومیه', 'بدون امکانات خاص'),
+(13, 'فدراسیون بسکتبال', 'لیگ برتر بسکتبال', 'سالن ۱۷ شهریور', 'نزدیک به خروجی'),
+(14, 'سازمان لیگ', 'لیگ برتر فوتبال ایران', 'ورزشگاه شهید سلیمانی', 'بدون امکانات'),
+(15, 'سازمان لیگ', 'لیگ برتر فوتبال ایران', 'ورزشگاه امام خمینی', 'سرویس بهداشتی نزدیک'),
+(16, 'فدراسیون والیبال', 'لیگ برتر والیبال', 'سالن گهر روش', 'تهویه مناسب'),
+(17, 'فدراسیون بسکتبال', 'لیگ برتر بسکتبال', 'سالن دانشگاه شیراز', 'بدون امکانات'),
+(18, 'سازمان لیگ', 'لیگ برتر فوتبال ایران', 'ورزشگاه تختی آبادان', 'دسترسی به اورژانس'),
+(19, 'سازمان لیگ', 'لیگ برتر فوتبال ایران', 'ورزشگاه غدیر اهواز', 'بدون امکانات'),
+(20, 'فدراسیون والیبال', 'لیگ برتر والیبال', 'سالن مهران', 'بوفه اختصاصی');
+
+INSERT INTO reservations (user_id, ticket_id, quantity, seat_info, reservation_status, reserved_at) VALUES
+(1, 1, 2, 'بخش ۲۲, ردیف ۱۰, صندلی ۱۵', 'paid', CURRENT_TIMESTAMP - INTERVAL '2 hours'),
+(1, 4, 1, 'جایگاه روبه‌رو, ردیف ۳, صندلی ۸', 'paid', CURRENT_TIMESTAMP - INTERVAL '1 hour'),
+(2, 1, 3, 'بخش ۲۲, ردیف ۱۰, صندلی ۱۶', 'reserved', CURRENT_TIMESTAMP),
+(3, 3, 1, 'بخش ۷, ردیف ۵, صندلی ۱۲', 'paid', CURRENT_TIMESTAMP - INTERVAL '1 day'),
+(4, 5, 2, 'بخش پشت سبد, ردیف ۱۲, صندلی ۱', 'paid', CURRENT_TIMESTAMP - INTERVAL '3 days'),
+(5, 2, 1, 'جایگاه ویژه A, ردیف ۱, صندلی ۵', 'cancelled', CURRENT_TIMESTAMP - INTERVAL '5 hours'),
+(6, 7, 4, 'جایگاه ویژه B, ردیف ۲, صندلی ۲۰', 'expired', CURRENT_TIMESTAMP - INTERVAL '15 minutes'),
+(7, 11, 1, 'بخش ۱, ردیف ۵, صندلی ۱۰', 'paid', CURRENT_TIMESTAMP - INTERVAL '30 minutes'),
+(2, 12, 2, 'بخش ۴, ردیف ۸, صندلی ۲', 'cancelled', CURRENT_TIMESTAMP - INTERVAL '1 day'),
+(3, 20, 1, 'جایگاه ویژه, ردیف ۱, صندلی ۵', 'paid', CURRENT_TIMESTAMP - INTERVAL '4 hours');
+
+INSERT INTO payments (user_id, reservation_id, amount, method, transaction_status, tracking_code, paid_at) VALUES
+(1, 1, 300000.00, 'card', 'success', 'TRX2001', CURRENT_TIMESTAMP - INTERVAL '1 hour 55 minutes'),
+(1, 2, 80000.00, 'wallet', 'success', 'TRX2002', CURRENT_TIMESTAMP - INTERVAL '55 minutes'),
+(3, 4, 100000.00, 'card', 'success', 'TRX2003', CURRENT_TIMESTAMP - INTERVAL '23 hours 55 minutes'),
+(4, 5, 140000.00, 'card', 'success', 'TRX2004', CURRENT_TIMESTAMP - INTERVAL '2 hours 52 minutes'),
+(5, 6, 300000.00, 'card', 'failed', 'TRX2005', CURRENT_TIMESTAMP - INTERVAL '4 hours 58 minutes'),
+(7, 8, 80000.00, 'wallet', 'success', 'TRX2006', CURRENT_TIMESTAMP - INTERVAL '25 minutes'),
+(3, 10, 85000.00, 'crypto', 'success', 'TRX2007', CURRENT_TIMESTAMP - INTERVAL '3 hours 52 minutes'),
+(2, 3, 450000.00, 'card', 'pending', 'TRX2008', CURRENT_TIMESTAMP),
+(6, 7, 1000000.00, 'card', 'failed', 'TRX2009', CURRENT_TIMESTAMP - INTERVAL '12 minutes'),
+(1, 1, 300000.00, 'card', 'failed', 'TRX2010', CURRENT_TIMESTAMP - INTERVAL '2 hours');
+
+INSERT INTO reports (reservation_id, report_type, description, reply, report_status, reported_at) VALUES
+(1, 'seat_issue', 'شماره صندلی من با شخص دیگری تداخل دارد.', NULL, 'pending', CURRENT_TIMESTAMP - INTERVAL '1 hour'),
+(6, 'payment_issue', 'مبلغ از حساب من کم شد اما بلیت رزرو نشد.', 'در حال پیگیری با درگاه بانکی.', 'investigating', CURRENT_TIMESTAMP - INTERVAL '4 hours'),
+(4, 'venue_issue', 'آدرس دقیق پارکینگ ورزشگاه نقش جهان مشخص نیست.', 'مسیر دسترسی اصلاح شد.', 'resolved', CURRENT_TIMESTAMP - INTERVAL '20 hours'),
+(5, 'technical_issue', 'بارکد بلیت روی گوشی من لود نمی‌شود.', NULL, 'pending', CURRENT_TIMESTAMP - INTERVAL '2 days'),
+(7, 'payment_issue', 'درگاه بانکی وسط تراکنش ارور داد.', 'مبلغ به حساب شما عودت داده شد.', 'resolved', CURRENT_TIMESTAMP - INTERVAL '10 minutes'),
+(1, 'technical_issue', 'منوی فیلتر بر اساس تاریخ مسابقات کار نمی‌کند.', NULL, 'pending', CURRENT_TIMESTAMP),
+(8, 'seat_issue', 'دید جایگاه توسط داربست‌ها کور شده است.', 'مشکل به مدیریت ورزشگاه ارجاع داده شد.', 'investigating', CURRENT_TIMESTAMP - INTERVAL '15 minutes'),
+(2, 'venue_issue', 'تهویه سالن فدراسیون والیبال قطع شده بود.', 'گزارش شما به فدراسیون ارسال شد.', 'resolved', CURRENT_TIMESTAMP - INTERVAL '30 minutes'),
+(10, 'technical_issue', 'پیامک تایید خرید برای من ارسال نشد.', NULL, 'pending', CURRENT_TIMESTAMP - INTERVAL '3 hours'),
+(10, 'technical_issue', 'سایت هنگام خرید بلیت والیبال کند بود.', 'در حال بررسی منابع سرور.', 'investigating', CURRENT_TIMESTAMP - INTERVAL '5 minutes');
