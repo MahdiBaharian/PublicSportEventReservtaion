@@ -173,3 +173,28 @@ WHERE reservation_status = 'cancelled'
 DELETE FROM reservations
 WHERE reservation_status = 'cancelled';
 
+-- Query 21
+UPDATE tickets
+SET price = price * 0.90
+WHERE ticket_id IN (
+    SELECT r.ticket_id
+    FROM reservations r
+    JOIN match_details md ON r.ticket_id = md.ticket_id
+    WHERE md.venue_name = 'ورزشگاه آزادی'
+      AND DATE(r.reserved_at) = CURRENT_DATE - INTERVAL '1 day'
+      AND r.reservation_status = 'paid'
+);
+
+-- Query 22
+SELECT rep.report_type, COUNT(rep.report_id) AS report_count
+FROM reports rep
+JOIN reservations res ON rep.reservation_id = res.reservation_id
+WHERE res.ticket_id = (
+    SELECT r.ticket_id
+    FROM reports rp
+    JOIN reservations r ON rp.reservation_id = r.reservation_id
+    GROUP BY r.ticket_id
+    ORDER BY COUNT(rp.report_id) DESC
+    LIMIT 1
+)
+GROUP BY rep.report_type;
