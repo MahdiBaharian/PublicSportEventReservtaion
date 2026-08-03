@@ -127,3 +127,49 @@ JOIN payments p ON r.reservation_id = p.reservation_id
 WHERE p.transaction_status = 'success'
   AND DATE(p.paid_at) = CURRENT_DATE
 ORDER BY p.paid_at ASC;
+
+-- Query 16
+SELECT t.ticket_id, t.sport_type, t.home_team, t.away_team, SUM(r.quantity) AS total_sold
+FROM tickets t
+JOIN reservations r ON t.ticket_id = r.ticket_id
+WHERE r.reservation_status = 'paid'
+GROUP BY t.ticket_id
+ORDER BY total_sold DESC
+OFFSET 1 LIMIT 1;
+
+-- Query 17
+SELECT u.first_name, u.last_name, 
+       COUNT(r.reservation_id) AS total_cancellations,
+       ROUND((COUNT(r.reservation_id) * 100.0 / NULLIF((SELECT COUNT(*) FROM reservations WHERE reservation_status = 'cancelled'), 0)), 2) AS cancellation_percentage
+FROM users u
+JOIN reservations r ON u.user_id = r.user_id 
+WHERE u.role = 'admin' AND r.reservation_status = 'cancelled'
+GROUP BY u.user_id, u.first_name, u.last_name
+ORDER BY total_cancellations DESC
+LIMIT 1;
+
+-- Query 18
+UPDATE users
+SET last_name = 'ردینگتون'
+WHERE user_id = (
+    SELECT user_id
+    FROM reservations
+    WHERE reservation_status = 'cancelled'
+    GROUP BY user_id
+    ORDER BY COUNT(reservation_id) DESC
+    LIMIT 1
+);
+
+-- Query 19
+DELETE FROM reservations
+WHERE reservation_status = 'cancelled'
+  AND user_id IN (
+      SELECT user_id
+      FROM users
+      WHERE last_name = 'ردینگتون'
+  );
+
+-- Query 20
+DELETE FROM reservations
+WHERE reservation_status = 'cancelled';
+
