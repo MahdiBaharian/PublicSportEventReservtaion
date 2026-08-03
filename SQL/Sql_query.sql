@@ -37,3 +37,51 @@ WHERE p.transaction_status = 'success'
 ORDER BY p.paid_at DESC
 LIMIT 1;
 
+-- Query 6
+SELECT u.phone_number, u.email
+FROM users u
+JOIN payments p ON u.user_id = p.user_id
+WHERE p.transaction_status = 'success'
+GROUP BY u.user_id, u.phone_number, u.email
+HAVING SUM(p.amount) > (
+    SELECT SUM(amount) / COUNT(DISTINCT user_id)
+    FROM payments
+    WHERE transaction_status = 'success'
+);
+
+-- Query 7
+SELECT t.sport_type, SUM(r.quantity) AS total_sold
+FROM tickets t
+JOIN reservations r ON t.ticket_id = r.ticket_id
+WHERE r.reservation_status = 'paid'
+GROUP BY t.sport_type;
+
+-- Query 8
+SELECT u.first_name, u.last_name, SUM(r.quantity) AS total_tickets
+FROM users u
+JOIN reservations r ON u.user_id = r.user_id
+WHERE r.reservation_status = 'paid'
+  AND r.reserved_at >= CURRENT_TIMESTAMP - INTERVAL '7 days'
+GROUP BY u.user_id, u.first_name, u.last_name
+ORDER BY total_tickets DESC
+LIMIT 3;
+
+-- Query 9
+SELECT t.venue_city, SUM(r.quantity) AS total_sold
+FROM tickets t
+JOIN reservations r ON t.ticket_id = r.ticket_id
+WHERE r.reservation_status = 'paid' 
+  AND t.venue_city IN ('تهران', 'ری', 'قدس', 'اسلام‌شهر', 'ملارد')
+GROUP BY t.venue_city;
+
+-- Query 10
+SELECT DISTINCT t.venue_city
+FROM tickets t
+JOIN reservations r ON t.ticket_id = r.ticket_id
+WHERE r.reservation_status = 'paid'
+  AND r.user_id = (
+      SELECT user_id
+      FROM users
+      ORDER BY created_at ASC
+      LIMIT 1
+  );
