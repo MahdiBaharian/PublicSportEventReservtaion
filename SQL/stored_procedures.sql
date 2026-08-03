@@ -95,3 +95,92 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- SP 5
+CREATE OR REPLACE FUNCTION get_users_same_city(p_identifier VARCHAR)
+RETURNS TABLE (
+    user_id INTEGER,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    email VARCHAR,
+    phone_number VARCHAR,
+    city VARCHAR
+) AS $$
+DECLARE
+    v_city VARCHAR;
+BEGIN
+    SELECT u.city INTO v_city
+    FROM users u
+    WHERE u.email = p_identifier OR u.phone_number = p_identifier
+    LIMIT 1;
+
+    RETURN QUERY
+    SELECT u.user_id, u.first_name, u.last_name, u.email, u.phone_number, u.city
+    FROM users u
+    WHERE u.city = v_city 
+      AND u.email != p_identifier 
+      AND u.phone_number != p_identifier;
+END;
+$$ LANGUAGE plpgsql;
+
+-- SP 6
+CREATE OR REPLACE FUNCTION get_top_purchasers_since_date(p_start_date TIMESTAMP, p_limit INTEGER)
+RETURNS TABLE (
+    user_id INTEGER,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    total_tickets BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT u.user_id, u.first_name, u.last_name, SUM(r.quantity) AS total_tickets
+    FROM users u
+    JOIN reservations r ON u.user_id = r.user_id
+    WHERE r.reservation_status = 'paid'
+      AND r.reserved_at >= p_start_date
+    GROUP BY u.user_id, u.first_name, u.last_name
+    ORDER BY total_tickets DESC
+    LIMIT p_limit;
+END;
+$$ LANGUAGE plpgsql;
+
+-- SP 7
+CREATE OR REPLACE FUNCTION get_cancelled_tickets_by_sport(p_sport_type VARCHAR)
+RETURNS TABLE (
+    ticket_id INTEGER,
+    home_team VARCHAR,
+    away_team VARCHAR,
+    ticket_date_time TIMESTAMP,
+    venue_city VARCHAR,
+    reservation_id INTEGER,
+    reserved_at TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT t.ticket_id, t.home_team, t.away_team, t.ticket_date_time, t.venue_city, r.reservation_id, r.reserved_at
+    FROM tickets t
+    JOIN reservations r ON t.ticket_id = r.ticket_id
+    WHERE t.sport_type = p_sport_type
+      AND r.reservation_status = 'cancelled'
+    ORDER BY t.ticket_date_time ASC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- SP 8
+CREATE OR REPLACE FUNCTION get_users_with_most_reports_by_category(p_category VARCHAR)
+RETURNS TABLE (
+    user_id INTEGER,
+    first_name VARCHAR,
+    last_name VARCHAR,
+    report_count BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT u.user_id, u.first_name, u.last_name, COUNT(rep.report_id) AS report_count
+    FROM users u
+    JOIN reservations r ON u.user_id = r.user_id
+    JOIN reports rep ON r.reservation_id = rep.reservation_id
+    WHERE rep.report_type = p_category
+    GROUP BY u.user_id, u.first_name, u.last_name
+    ORDER BY report_count DESC;
+END;
+$$ LANGUAGE plpgsql;
