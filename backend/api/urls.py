@@ -11,6 +11,10 @@ from .views.get_ticket_details import get_ticket_details
 from .views.reserve_ticket import reserve_ticket
 from .views.payment import payment_for_ticket
 from .views.check_cancellation_penalty import check_cancellation_penalty
+from .views.admin_management import admin_management
+from .views.user_bookings import get_user_bookings
+from .views.cancel_ticket import cancel_ticket_and_refund
+from .views.report_issue import report_ticket_issue
 
 urlpatterns = [
     path('auth/signup/', signup),
@@ -25,4 +29,8 @@ urlpatterns = [
     path('reservations/', reserve_ticket),
     path('payments/', payment_for_ticket),
     path('reservations/<int:reservation_id>/cancel-penalty/', check_cancellation_penalty),
+    path('admin/management/', admin_management),
+    path('user/bookings/', get_user_bookings),
+    path('reservations/<int:reservation_id>/cancel/', cancel_ticket_and_refund),
+    path('reservations/<int:reservation_id>/report/', report_ticket_issue),
 ]
