@@ -2,43 +2,61 @@ services:
   db:
     image: postgres:15-alpine
     container_name: sport_db
-    restart: always
-    env_file:
-      - .env
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: sport_redis
-    restart: always
     ports:
       - "6379:6379"
 
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: sport_backend
-    restart: always
-    env_file:
-      - .env
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: sport_es
     environment:
-      - DB_HOST=db
-      - REDIS_URL=redis://redis:6379/1
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     ports:
-      - "8000:8000"
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+  backend:
+    build: ./backend
+    container_name: sport_backend
+    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./backend:/app
+    ports:
+      - "8000:8000"
     depends_on:
       - db
       - redis
+      - elasticsearch
+    env_file:
+      - .env
+
+  frontend:
+    build: ./frontend
+    container_name: sport_frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    environment:
+      - CHOKIDAR_USEPOLLING=true
 
 volumes:
   postgres_data:
+  es_data:
