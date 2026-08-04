@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.core.cache import cache
 from django.db import connection
-from .utils import send_html_otp_email
+from api.utils import send_html_otp_email
 import random
 
 @api_view(['POST'])

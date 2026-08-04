@@ -45,3 +45,19 @@ def send_html_otp_email(email, otp):
     msg = EmailMultiAlternatives(subject, text_content, settings.EMAIL_HOST_USER, [email])
     msg.attach_alternative(html_content, "text/html")
     msg.send()
+    
+def get_user_id_from_request(request):
+    """
+    Extracts and decodes the JWT token from the Authorization header 
+    to return the user_id.
+    """
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return None
+        
+    token = auth_header.split(' ')[1]
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
+        return payload.get('user_id')
+    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        return None

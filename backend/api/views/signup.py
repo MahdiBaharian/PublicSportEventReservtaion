@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from django.core.cache import cache
 from django.db import connection
 from django.contrib.auth.hashers import make_password
-from .utils import send_html_otp_email
+from api.utils import send_html_otp_email
 import random
 
 @api_view(['POST'])

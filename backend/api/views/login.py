@@ -2,7 +2,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.db import connection
 from django.contrib.auth.hashers import check_password
-from .utils import generate_tokens
+from api.utils import generate_tokens
 
 @api_view(['POST'])
 def login(request):
