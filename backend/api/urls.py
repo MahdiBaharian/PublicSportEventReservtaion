@@ -15,6 +15,7 @@ from .views.admin_management import admin_management
 from .views.user_bookings import get_user_bookings
 from .views.cancel_ticket import cancel_ticket_and_refund
 from .views.report_issue import report_ticket_issue
+from .views.ticket_management import ticket_management
 
 urlpatterns = [
     path('auth/signup/', signup),
@@ -33,4 +34,5 @@ urlpatterns = [
     path('user/bookings/', get_user_bookings),
     path('reservations/<int:reservation_id>/cancel/', cancel_ticket_and_refund),
     path('reservations/<int:reservation_id>/report/', report_ticket_issue),
+    path('admin/tickets/', ticket_management),
 ]
