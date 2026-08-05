@@ -6,6 +6,7 @@ import ForgotPassword from './pages/forgot-password';
 import Layout from './components/Layout';
 import Dashboard from './pages/dashboard';
 import Profile from './pages/profile';
+import Search from './pages/search';
 
 function App() {
   return (
@@ -19,9 +20,10 @@ function App() {
         
         <Route path="/dashboard" element={<Layout />}>
           <Route index element={<Dashboard />} />
-          <Route path="search" element={<div className="p-8 text-center font-bold">بخش جستجوی بلیت (به زودی)</div>} />
+          <Route path="search" element={<Search />} />
           <Route path="reservations" element={<div className="p-8 text-center font-bold">بلیت‌های من (به زودی)</div>} />
           <Route path="profile" element={<Profile />} />
+          <Route path="tickets/:id" element={<div className="p-8 text-center font-bold">جزئیات بلیت (به زودی)</div>} />
         </Route>
       </Routes>
     </BrowserRouter>

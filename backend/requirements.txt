@@ -2,8 +2,8 @@ Django
 djangorestframework
 psycopg2-binary
 redis
-python-dotenv 
+python-dotenv
 django-redis
 PyJWT
-elasticsearch
+elasticsearch>=8.11,<9
 django-cors-headers

@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 export const authApi = {
   signup: async (data: any) => {
@@ -69,6 +69,31 @@ export const userApi = {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+};
+
+export const ticketApi = {
+  getLocations: async () => {
+    const res = await fetch(`${API_BASE_URL}/locations/`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return res.json();
+  },
+
+  search: async (params: Record<string, string>) => {
+    const queryParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value.trim() !== '') {
+        queryParams.append(key, value);
+      }
+    });
+
+    const res = await fetch(`${API_BASE_URL}/tickets/search/?${queryParams.toString()}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
     });
     return res.json();
   },
