@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import type { KeyboardEvent, ClipboardEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../services/api';
 import Feedback from '../components/Feedback';
@@ -9,17 +10,34 @@ export default function ForgotPassword() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     email: '',
-    otp: '',
     new_password: '',
     confirm_password: '',
   });
   
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(0);
+
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (step !== 2 || timeLeft <= 0) return;
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft, step]);
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   const pwd = formData.new_password;
   const isTyping = pwd.length > 0;
@@ -42,14 +60,8 @@ export default function ForgotPassword() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateStep2 = () => {
+  const validateStep3 = () => {
     const newErrors: Record<string, string> = {};
-
-    if (!formData.otp.trim()) {
-      newErrors.otp = 'کد تایید الزامی است.';
-    } else if (formData.otp.length < 6) {
-      newErrors.otp = 'کد تایید باید ۶ رقم باشد.';
-    }
 
     if (!formData.new_password) {
       newErrors.new_password = 'رمز عبور جدید الزامی است.';
@@ -76,6 +88,41 @@ export default function ForgotPassword() {
     setSuccessMessage('');
   };
 
+  const handleOtpChange = (element: HTMLInputElement, index: number) => {
+    const value = element.value;
+    if (isNaN(Number(value))) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value.substring(value.length - 1);
+    setOtp(newOtp);
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text/plain').trim().slice(0, 6).split('');
+    
+    if (pastedData.some(char => isNaN(Number(char)))) return;
+
+    const newOtp = [...otp];
+    pastedData.forEach((char, i) => {
+      if (i < 6) newOtp[i] = char;
+    });
+    setOtp(newOtp);
+
+    const nextIndex = Math.min(pastedData.length, 5);
+    inputRefs.current[nextIndex]?.focus();
+  };
+
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateStep1()) return;
@@ -88,6 +135,7 @@ export default function ForgotPassword() {
       } else {
         setSuccessMessage('کد تایید به ایمیل شما ارسال شد.');
         setStep(2);
+        setTimeLeft(120);
       }
     } catch (err) {
       setGeneralError('ارتباط با سرور برقرار نشد.');
@@ -96,21 +144,37 @@ export default function ForgotPassword() {
     }
   };
 
+  const handleVerifyOtpVisual = (e: React.FormEvent) => {
+    e.preventDefault();
+    setGeneralError('');
+    
+    const otpString = otp.join('');
+    if (otpString.length < 6) {
+      setGeneralError('لطفا کد ۶ رقمی را کامل وارد کنید.');
+      return;
+    }
+    
+    setStep(3);
+  };
+
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep2()) return;
+    if (!validateStep3()) return;
 
     setIsLoading(true);
     try {
       const submitData = {
         email: formData.email,
-        otp: formData.otp,
+        otp: otp.join(''),
         new_password: formData.new_password
       };
       
       const response = await authApi.forgetPassword(submitData);
       if (response.error) {
         setGeneralError(response.error);
+        if (response.error.includes('کد تایید')) {
+          setStep(2);
+        }
       } else {
         setSuccessMessage('رمز عبور با موفقیت تغییر کرد. در حال انتقال به صفحه ورود...');
         setTimeout(() => {
@@ -145,7 +209,15 @@ export default function ForgotPassword() {
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-gray-900">فراموشی رمز عبور</h2>
           <p className="text-gray-500 mt-2 text-sm">
-            {step === 1 ? 'ایمیل حساب کاربری خود را وارد کنید' : 'کد تایید و رمز عبور جدید را وارد کنید'}
+            {step === 1 && 'ایمیل حساب کاربری خود را وارد کنید'}
+            {step === 2 && (
+              <>
+                کد ۶ رقمی ارسال شده به <br />
+                <span className="font-bold text-gray-700" dir="ltr">{formData.email}</span> <br />
+                را وارد کنید.
+              </>
+            )}
+            {step === 3 && 'رمز عبور جدید خود را وارد کنید'}
           </p>
         </div>
 
@@ -170,28 +242,85 @@ export default function ForgotPassword() {
               disabled={isLoading}
               className={`w-full text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md flex justify-center items-center gap-2 ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-hover'}`}
             >
-              {isLoading ? 'در حال ارسال...' : 'ارسال کد تایید'}
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  در حال ارسال...
+                </>
+              ) : (
+                'ارسال کد تایید'
+              )}
             </button>
           </form>
         )}
 
         {step === 2 && (
-          <form onSubmit={handleResetPassword} className="space-y-6" noValidate>
-            <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2">کد تایید</label>
-              <input 
-                type="text" 
-                name="otp" 
-                value={formData.otp}
-                maxLength={6}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all text-center tracking-[0.5em] font-mono text-xl bg-white text-gray-900 ${errors.otp ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
-                dir="ltr"
-                onChange={handleChange} 
-                disabled={isLoading}
-              />
-              <Feedback type="inline" status="error" message={errors.otp} />
+          <form onSubmit={handleVerifyOtpVisual} className="space-y-8">
+            <div className="flex justify-between items-center gap-2" dir="ltr">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  ref={(el) => { inputRefs.current[index] = el; }}
+                  onChange={(e) => handleOtpChange(e.target, index)}
+                  onKeyDown={(e) => handleKeyDown(e, index)}
+                  onPaste={handlePaste}
+                  className="w-12 h-14 text-center text-2xl font-bold text-gray-900 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white focus:border-transparent transition-all shadow-sm"
+                />
+              ))}
             </div>
+            
+            <button 
+              type="submit" 
+              className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md"
+            >
+              مرحله بعد
+            </button>
 
+            <div className="mt-8 flex flex-col items-center gap-5 border-t pt-6">
+              <div className="text-gray-600 font-mono text-xl tracking-widest bg-gray-100 px-6 py-2 rounded-lg shadow-inner">
+                {formatTime(timeLeft)}
+              </div>
+              
+              <div className="flex flex-col w-full gap-3 mt-2">
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
+                  disabled={timeLeft > 0 || isLoading}
+                  className={`w-full py-3 px-4 rounded-lg font-bold transition-all flex justify-center items-center gap-2 ${
+                    timeLeft === 0 
+                      ? 'bg-primary-light text-primary hover:bg-blue-100 border border-primary-light shadow-sm cursor-pointer' 
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  ارسال مجدد کد تایید
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="w-full py-3 px-4 rounded-lg font-bold text-gray-600 bg-white border border-gray-300 hover:bg-gray-50 hover:text-gray-900 transition-all flex justify-center items-center gap-2 shadow-sm"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  بازگشت و تغییر ایمیل
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
+
+        {step === 3 && (
+          <form onSubmit={handleResetPassword} className="space-y-6" noValidate>
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-gray-700 text-sm font-bold">رمز عبور جدید</label>
@@ -294,7 +423,17 @@ export default function ForgotPassword() {
               disabled={isLoading}
               className={`w-full text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md flex justify-center items-center gap-2 ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-hover'}`}
             >
-              {isLoading ? 'در حال ثبت...' : 'تایید و تغییر رمز عبور'}
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  در حال ثبت...
+                </>
+              ) : (
+                'تایید و تغییر رمز عبور'
+              )}
             </button>
           </form>
         )}
