@@ -27,4 +27,17 @@ export const authApi = {
     });
     return res.json();
   },
+
+  updateProfile: async (data: any) => {
+    const token = localStorage.getItem('access');
+    const res = await fetch(`${API_BASE_URL}/profile/update/`, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
 };

@@ -4,6 +4,7 @@ import Signup from './pages/signup';
 import VerifyOtp from './pages/verify-otp';
 import Layout from './components/Layout';
 import Dashboard from './pages/dashboard';
+import Profile from './pages/profile';
 
 function App() {
   return (
@@ -18,7 +19,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="search" element={<div className="p-8 text-center font-bold">بخش جستجوی بلیت (به زودی)</div>} />
           <Route path="reservations" element={<div className="p-8 text-center font-bold">بلیت‌های من (به زودی)</div>} />
-          <Route path="profile" element={<div className="p-8 text-center font-bold">پروفایل کاربری (به زودی)</div>} />
+          <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>
     </BrowserRouter>
