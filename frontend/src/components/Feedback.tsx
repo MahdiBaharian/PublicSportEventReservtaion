@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 
 interface FeedbackProps {
-  type: 'inline' | 'toast' | 'modal' | 'popup';
+  type: 'inline' | 'toast' | 'modal' | 'popup' | 'confirm';
   status: 'error' | 'success' | 'warning';
   message: string;
   isOpen?: boolean;
   onClose?: () => void;
+  onConfirm?: () => void;
 }
 
-export default function Feedback({ type, status, message, isOpen = true, onClose }: FeedbackProps) {
+export default function Feedback({ type, status, message, isOpen = true, onClose, onConfirm }: FeedbackProps) {
   const [visible, setVisible] = useState(isOpen);
 
   useEffect(() => {
@@ -96,6 +97,33 @@ export default function Feedback({ type, status, message, isOpen = true, onClose
           >
             متوجه شدم
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (type === 'confirm') {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+        <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 text-center">
+          <div className="flex justify-center mb-4 scale-150">
+            {currentStyle.icon}
+          </div>
+          <h3 className={`text-lg font-bold mb-6 ${currentStyle.text}`}>{message}</h3>
+          <div className="flex gap-3">
+            <button 
+              onClick={() => { setVisible(false); if(onConfirm) onConfirm(); }}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg font-bold transition shadow-sm"
+            >
+              بله
+            </button>
+            <button 
+              onClick={() => { setVisible(false); if(onClose) onClose(); }}
+              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-2.5 rounded-lg font-bold transition shadow-sm"
+            >
+              انصراف
+            </button>
+          </div>
         </div>
       </div>
     );
