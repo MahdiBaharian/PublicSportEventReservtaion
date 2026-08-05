@@ -27,7 +27,9 @@ export const authApi = {
     });
     return res.json();
   },
+};
 
+export const userApi = {
   updateProfile: async (data: any) => {
     const token = localStorage.getItem('access');
     const res = await fetch(`${API_BASE_URL}/profile/update/`, {
