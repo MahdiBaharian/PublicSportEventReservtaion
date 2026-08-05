@@ -27,6 +27,24 @@ export const authApi = {
     });
     return res.json();
   },
+
+  sendOtp: async (data: any) => {
+    const res = await fetch(`${API_BASE_URL}/auth/send-otp/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
+
+  forgetPassword: async (data: any) => {
+    const res = await fetch(`${API_BASE_URL}/auth/forget-password/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return res.json();
+  },
 };
 
 export const userApi = {
