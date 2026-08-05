@@ -1,8 +1,6 @@
 // SECTION: RESERVATIONS PAGE
-// Handles displaying, paying, and canceling user reservations
-
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ticketApi } from '../services/api';
 import Feedback from '../components/Feedback';
 
@@ -22,6 +20,7 @@ interface Reservation {
 }
 
 export default function Reservations() {
+  const navigate = useNavigate();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [generalError, setGeneralError] = useState('');
@@ -61,11 +60,11 @@ export default function Reservations() {
 
   const translateStatus = (status: string) => {
     const statuses: Record<string, { label: string, color: string }> = {
-      pending: { label: 'در انتظار پرداخت', color: 'bg-yellow-100 text-yellow-800' },
-      confirmed: { label: 'پرداخت شده / قطعی', color: 'bg-green-100 text-green-800' },
-      cancelled: { label: 'لغو شده', color: 'bg-red-100 text-red-800' },
+      pending: { label: 'در انتظار پرداخت', color: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+      confirmed: { label: 'پرداخت شده / قطعی', color: 'bg-green-100 text-green-800 border-green-200' },
+      cancelled: { label: 'لغو شده', color: 'bg-red-100 text-red-800 border-red-200' },
     };
-    return statuses[status?.toLowerCase()] || { label: status, color: 'bg-gray-100 text-gray-800' };
+    return statuses[status?.toLowerCase()] || { label: status, color: 'bg-gray-100 text-gray-800 border-gray-200' };
   };
 
   const formatDate = (dateString: string) => {
@@ -87,7 +86,12 @@ export default function Reservations() {
     try {
       const response = await ticketApi.cancelReservation(cancelId);
       if (response.error) {
-        setGeneralError(response.error);
+        let errorMsg = response.error;
+        if (errorMsg.toLowerCase().includes('already') || errorMsg.toLowerCase().includes('cancelled')) {
+          errorMsg = 'این بلیت قبلاً لغو شده است.';
+        }
+        setGeneralError(errorMsg);
+        fetchReservations();
       } else {
         setSuccessMessage('بلیت با موفقیت لغو شد و وجه آن مسترد می‌گردد.');
         fetchReservations();
@@ -97,25 +101,6 @@ export default function Reservations() {
     } finally {
       setIsProcessing(false);
       setCancelId(null);
-    }
-  };
-
-  const handlePay = async (reservationId: number) => {
-    setIsProcessing(true);
-    setGeneralError('');
-
-    try {
-      const response = await ticketApi.payReservation(reservationId);
-      if (response.error) {
-        setGeneralError(response.error);
-      } else {
-        setSuccessMessage('پرداخت با موفقیت انجام شد. بلیت شما قطعی است.');
-        fetchReservations();
-      }
-    } catch (err) {
-      setGeneralError('خطا در اتصال به درگاه پرداخت.');
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -169,16 +154,18 @@ export default function Reservations() {
           <div className="space-y-4">
             {reservations.map((res) => {
               const statusInfo = translateStatus(res.status);
+              const isActionable = res.status?.toLowerCase() === 'pending';
+              
               return (
-                <div key={res.reservation_id} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+                <div key={res.reservation_id} className={`bg-white border rounded-xl overflow-hidden transition-shadow ${isActionable ? 'border-gray-200 hover:shadow-md' : 'border-gray-100 opacity-80'}`}>
                   <div className="p-6 flex flex-col md:flex-row gap-6 items-start md:items-center">
                     
-                    <div className="flex-1 space-y-3">
+                    <div className="flex-1 space-y-3 w-full">
                       <div className="flex items-center gap-3">
                         <span className="text-xs font-bold px-2 py-1 bg-gray-100 text-gray-600 rounded">
                           {translateSportType(res.sport_type)}
                         </span>
-                        <span className={`text-xs font-bold px-2 py-1 rounded ${statusInfo.color}`}>
+                        <span className={`text-xs font-bold px-3 py-1 rounded border ${statusInfo.color}`}>
                           {statusInfo.label}
                         </span>
                       </div>
@@ -203,12 +190,12 @@ export default function Reservations() {
                       </div>
                     </div>
 
-                    <div className="w-full md:w-auto bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-center min-w-[200px]">
+                    <div className="w-full md:w-auto bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-center min-w-[220px]">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-500 text-sm">تعداد:</span>
                         <span className="font-bold text-gray-900">{res.quantity} عدد</span>
                       </div>
-                      {res.seat_info && (
+                      {res.seat_info && res.seat_info.trim() !== '' && (
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-gray-500 text-sm">موقعیت:</span>
                           <span className="font-bold text-gray-900 text-sm">{res.seat_info}</span>
@@ -216,22 +203,23 @@ export default function Reservations() {
                       )}
                       <div className="flex justify-between items-center border-t border-gray-200 pt-2 mt-1">
                         <span className="text-gray-500 text-sm">مبلغ کل:</span>
-                        <span className="font-black text-green-600">{Number(res.total_price).toLocaleString('fa-IR')} تومان</span>
+                        <span className="font-black text-green-600">
+                          {Number(res.total_price || 0).toLocaleString('fa-IR')} تومان
+                        </span>
                       </div>
                     </div>
                   </div>
 
-                  {res.status !== 'cancelled' && (
+                  {isActionable && (
                     <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row gap-3 justify-end items-center">
-                      {res.status === 'pending' && (
-                        <button
-                          onClick={() => handlePay(res.reservation_id)}
-                          disabled={isProcessing}
-                          className="w-full sm:w-auto px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors shadow-sm"
-                        >
-                          پرداخت و قطعی کردن
-                        </button>
-                      )}
+                      <button
+                        onClick={() => navigate(`/dashboard/payment/${res.reservation_id}`)}
+                        disabled={isProcessing}
+                        className="w-full sm:w-auto px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors shadow-sm"
+                      >
+                        پرداخت و قطعی کردن
+                      </button>
+                      
                       <button
                         onClick={() => setCancelId(res.reservation_id)}
                         disabled={isProcessing}

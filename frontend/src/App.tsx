@@ -9,6 +9,7 @@ import Profile from './pages/profile';
 import Search from './pages/search';
 import TicketDetail from './pages/ticket-detail';
 import Reservations from './pages/reservations';
+import Payment from './pages/payment';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="reservations" element={<Reservations />} />
           <Route path="profile" element={<Profile />} />
           <Route path="tickets/:id" element={<TicketDetail />} />
+          <Route path="payment/:id" element={<Payment />} />
         </Route>
       </Routes>
     </BrowserRouter>
