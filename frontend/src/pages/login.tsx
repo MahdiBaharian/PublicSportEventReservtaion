@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../services/api';
+import Feedback from '../components/Feedback';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,53 +10,79 @@ export default function Login() {
     identifier: '',
     password: '',
   });
-  const [error, setError] = useState('');
+  
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.identifier.trim()) {
+      newErrors.identifier = 'وارد کردن شماره موبایل یا ایمیل الزامی است.';
+    }
+    if (!formData.password) {
+      newErrors.password = 'وارد کردن رمز عبور الزامی است.';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: '' });
+    }
+    setGeneralError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     
-    const response = await authApi.login(formData);
+    if (!validateForm()) return;
     
-    if (response.error) {
-      setError(response.error);
-    } else {
-      localStorage.setItem('access', response.access);
-      localStorage.setItem('refresh', response.refresh);
-      navigate('/dashboard');
+    try {
+      const response = await authApi.login(formData);
+      
+      if (response.error) {
+        setGeneralError(response.error);
+      } else if (response.access) {
+        localStorage.setItem('access', response.access);
+        localStorage.setItem('refresh', response.refresh);
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setGeneralError('ارتباط با سرور برقرار نشد. لطفا وضعیت اینترنت یا سرور را بررسی کنید.');
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4" dir="rtl">
+      <Feedback 
+        type="toast" 
+        status="error" 
+        message={generalError} 
+        isOpen={!!generalError} 
+        onClose={() => setGeneralError('')} 
+      />
+
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-gray-900">ورود به حساب</h2>
           <p className="text-gray-500 mt-2 text-sm">جهت رزرو بلیت وارد سامانه شوید</p>
         </div>
-        
-        {error && (
-          <div className="bg-red-50 border-r-4 border-red-500 text-red-700 p-4 rounded-lg mb-6 text-sm font-medium">
-            {error}
-          </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">شماره موبایل</label>
+            <label className="block text-gray-700 text-sm font-bold mb-2">شماره موبایل یا ایمیل</label>
             <input 
               type="text" 
               name="identifier" 
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-white text-gray-900"
+              value={formData.identifier}
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.identifier ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
               dir="ltr"
               onChange={handleChange} 
-              required 
             />
+            <Feedback type="inline" status="error" message={errors.identifier} />
           </div>
           
           <div>
@@ -64,14 +91,14 @@ export default function Login() {
               <input 
                 type={showPassword ? "text" : "password"} 
                 name="password" 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-white text-gray-900" 
+                value={formData.password}
+                className={`w-full pr-4 pl-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
                 dir="ltr"
                 onChange={handleChange} 
-                required 
               />
               <button
                 type="button"
-                className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 hover:text-primary transition-colors"
+                className="absolute inset-y-0 left-0 pl-4 pr-3 flex items-center text-gray-400 hover:text-primary transition-colors z-10"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
@@ -86,6 +113,7 @@ export default function Login() {
                 )}
               </button>
             </div>
+            <Feedback type="inline" status="error" message={errors.password} />
           </div>
           
           <button 
@@ -95,6 +123,13 @@ export default function Login() {
             ورود به سامانه
           </button>
         </form>
+
+        <div className="mt-8 text-center text-sm text-gray-600 border-t pt-6">
+          حساب کاربری ندارید؟{' '}
+          <Link to="/signup" className="text-primary font-bold hover:underline">
+            ثبت‌نام کنید
+          </Link>
+        </div>
       </div>
     </div>
   );
