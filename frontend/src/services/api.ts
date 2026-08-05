@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const authApi = {
   signup: async (data: any) => {
@@ -30,6 +30,18 @@ export const authApi = {
 };
 
 export const userApi = {
+  getProfile: async () => {
+    const token = localStorage.getItem('access');
+    const res = await fetch(`${API_BASE_URL}/profile/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+    });
+    return res.json();
+  },
+
   updateProfile: async (data: any) => {
     const token = localStorage.getItem('access');
     const res = await fetch(`${API_BASE_URL}/profile/update/`, {
