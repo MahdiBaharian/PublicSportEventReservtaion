@@ -121,7 +121,7 @@ export const ticketApi = {
 
   getReservations: async () => {
     const token = localStorage.getItem('access');
-    const res = await fetch(`${API_BASE_URL}/reservations/`, {
+    const res = await fetch(`${API_BASE_URL}/user/bookings/`, {
       method: 'GET',
       headers: { 
         'Content-Type': 'application/json',
@@ -145,12 +145,13 @@ export const ticketApi = {
 
   payReservation: async (reservationId: number) => {
     const token = localStorage.getItem('access');
-    const res = await fetch(`${API_BASE_URL}/reservations/${reservationId}/pay/`, {
+    const res = await fetch(`${API_BASE_URL}/payments/`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
+      body: JSON.stringify({ reservation_id: reservationId }),
     });
     return res.json();
   }
