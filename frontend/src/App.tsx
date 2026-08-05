@@ -8,6 +8,7 @@ import Dashboard from './pages/dashboard';
 import Profile from './pages/profile';
 import Search from './pages/search';
 import TicketDetail from './pages/ticket-detail';
+import Reservations from './pages/reservations';
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
         <Route path="/dashboard" element={<Layout />}>
           <Route index element={<Dashboard />} />
           <Route path="search" element={<Search />} />
-          <Route path="reservations" element={<div className="p-8 text-center font-bold">بلیت‌های من (به زودی)</div>} />
+          <Route path="reservations" element={<Reservations />} />
           <Route path="profile" element={<Profile />} />
           <Route path="tickets/:id" element={<TicketDetail />} />
         </Route>

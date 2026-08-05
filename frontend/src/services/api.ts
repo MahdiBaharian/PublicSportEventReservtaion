@@ -118,4 +118,40 @@ export const ticketApi = {
     });
     return res.json();
   },
+
+  getReservations: async () => {
+    const token = localStorage.getItem('access');
+    const res = await fetch(`${API_BASE_URL}/reservations/`, {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+    });
+    return res.json();
+  },
+
+  cancelReservation: async (reservationId: number) => {
+    const token = localStorage.getItem('access');
+    const res = await fetch(`${API_BASE_URL}/reservations/${reservationId}/cancel/`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+    });
+    return res.json();
+  },
+
+  payReservation: async (reservationId: number) => {
+    const token = localStorage.getItem('access');
+    const res = await fetch(`${API_BASE_URL}/reservations/${reservationId}/pay/`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+    });
+    return res.json();
+  }
 };
