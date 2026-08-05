@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/login';
 import Signup from './pages/signup';
 import VerifyOtp from './pages/verify-otp';
+import Layout from './components/Layout';
+import Dashboard from './pages/dashboard';
 
 function App() {
   return (
@@ -11,7 +13,13 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
-        <Route path="/dashboard" element={<div className="p-4 text-center mt-10 text-xl font-bold">پنل کاربری (به زودی)</div>} />
+        
+        <Route path="/dashboard" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="search" element={<div className="p-8 text-center font-bold">بخش جستجوی بلیت (به زودی)</div>} />
+          <Route path="reservations" element={<div className="p-8 text-center font-bold">بلیت‌های من (به زودی)</div>} />
+          <Route path="profile" element={<div className="p-8 text-center font-bold">پروفایل کاربری (به زودی)</div>} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );
