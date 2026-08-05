@@ -31,41 +31,49 @@ export default function Login() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center mb-6">ورود به حساب کاربری</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4" dir="rtl">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-extrabold text-gray-900">ورود به حساب</h2>
+          <p className="text-gray-500 mt-2 text-sm">جهت رزرو بلیت وارد سامانه شوید</p>
+        </div>
         
         {error && (
-          <div className="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm">
+          <div className="bg-red-50 border-r-4 border-red-500 text-red-700 p-4 rounded-lg mb-6 text-sm font-medium">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input 
-            type="text" 
-            name="identifier" 
-            placeholder="ایمیل یا شماره موبایل" 
-            className="w-full border p-2 rounded text-left"
-            dir="ltr"
-            onChange={handleChange} 
-            required 
-          />
-          <input 
-            type="password" 
-            name="password" 
-            placeholder="رمز عبور" 
-            className="w-full border p-2 rounded text-left" 
-            dir="ltr"
-            onChange={handleChange} 
-            required 
-          />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2">ایمیل یا شماره موبایل</label>
+            <input 
+              type="text" 
+              name="identifier" 
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900"
+              dir="ltr"
+              onChange={handleChange} 
+              required 
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2">رمز عبور</label>
+            <input 
+              type="password" 
+              name="password" 
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white text-gray-900" 
+              dir="ltr"
+              onChange={handleChange} 
+              required 
+            />
+          </div>
           
           <button 
             type="submit" 
-            className="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 transition"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md"
           >
-            ورود
+            ورود به سامانه
           </button>
         </form>
       </div>
