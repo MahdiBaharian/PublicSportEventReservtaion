@@ -6,3 +6,4 @@ python-dotenv
 django-redis
 PyJWT
 elasticsearch
+django-cors-headers
