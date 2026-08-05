@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../services/api';
 import Feedback from '../components/Feedback';
@@ -9,7 +9,6 @@ export default function Signup() {
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
-    username: '',
     email: '',
     phone_number: '',
     password: '',
@@ -18,8 +17,17 @@ export default function Signup() {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const savedData = sessionStorage.getItem('signupFormData');
+    if (savedData) {
+      setFormData(JSON.parse(savedData));
+    }
+  }, []);
 
   const pwd = formData.password;
   const isTyping = pwd.length > 0;
@@ -35,7 +43,6 @@ export default function Signup() {
 
     if (!formData.first_name.trim()) newErrors.first_name = 'نام الزامی است.';
     if (!formData.last_name.trim()) newErrors.last_name = 'نام خانوادگی الزامی است.';
-    if (!formData.username.trim()) newErrors.username = 'نام کاربری الزامی است.';
     
     if (!formData.email.trim()) {
       newErrors.email = 'ایمیل الزامی است.';
@@ -66,7 +73,10 @@ export default function Signup() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const updatedData = { ...formData, [e.target.name]: e.target.value };
+    setFormData(updatedData);
+    sessionStorage.setItem('signupFormData', JSON.stringify(updatedData));
+    
     if (errors[e.target.name]) {
       setErrors({ ...errors, [e.target.name]: '' });
     }
@@ -77,18 +87,34 @@ export default function Signup() {
     e.preventDefault();
     
     if (!validateForm()) return;
+    
+    setIsLoading(true);
 
     try {
-      const { confirm_password, ...submitData } = formData;
+      const submitData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        email: formData.email,
+        phone_number: formData.phone_number,
+        password: formData.password,
+        username: formData.phone_number
+      };
+      
       const response = await authApi.signup(submitData);
       
       if (response.error) {
         setGeneralError(response.error);
       } else {
-        navigate(`/verify-otp?email=${formData.email}&action=signup`);
+        setSuccessMessage('کد تایید ارسال شد. در حال انتقال به مرحله بعد...');
+        
+        setTimeout(() => {
+          navigate(`/verify-otp?email=${formData.email}&action=signup`);
+        }, 1500);
       }
     } catch (err) {
       setGeneralError('ارتباط با سرور برقرار نشد. لطفا وضعیت اینترنت یا سرور را بررسی کنید.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -100,6 +126,13 @@ export default function Signup() {
         message={generalError} 
         isOpen={!!generalError} 
         onClose={() => setGeneralError('')} 
+      />
+      <Feedback 
+        type="toast" 
+        status="success" 
+        message={successMessage} 
+        isOpen={!!successMessage} 
+        onClose={() => setSuccessMessage('')} 
       />
 
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
@@ -118,6 +151,7 @@ export default function Signup() {
                 value={formData.first_name}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.first_name ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
                 onChange={handleChange} 
+                disabled={isLoading}
               />
               <Feedback type="inline" status="error" message={errors.first_name} />
             </div>
@@ -129,22 +163,10 @@ export default function Signup() {
                 value={formData.last_name}
                 className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.last_name ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
                 onChange={handleChange} 
+                disabled={isLoading}
               />
               <Feedback type="inline" status="error" message={errors.last_name} />
             </div>
-          </div>
-
-          <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">نام کاربری</label>
-            <input 
-              type="text" 
-              name="username" 
-              value={formData.username}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.username ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
-              dir="ltr"
-              onChange={handleChange} 
-            />
-            <Feedback type="inline" status="error" message={errors.username} />
           </div>
 
           <div>
@@ -156,6 +178,7 @@ export default function Signup() {
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
               dir="ltr"
               onChange={handleChange} 
+              disabled={isLoading}
             />
             <Feedback type="inline" status="error" message={errors.email} />
           </div>
@@ -170,6 +193,7 @@ export default function Signup() {
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.phone_number ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
               dir="ltr"
               onChange={handleChange} 
+              disabled={isLoading}
             />
             <Feedback type="inline" status="error" message={errors.phone_number} />
           </div>
@@ -218,11 +242,13 @@ export default function Signup() {
                 className={`w-full pr-4 pl-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
                 dir="ltr"
                 onChange={handleChange} 
+                disabled={isLoading}
               />
               <button
                 type="button"
                 className="absolute inset-y-0 left-0 pl-4 pr-3 flex items-center text-gray-400 hover:text-primary transition-colors z-10"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
               >
                 {showPassword ? (
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -249,11 +275,13 @@ export default function Signup() {
                 className={`w-full pr-4 pl-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.confirm_password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
                 dir="ltr"
                 onChange={handleChange} 
+                disabled={isLoading}
               />
               <button
                 type="button"
                 className="absolute inset-y-0 left-0 pl-4 pr-3 flex items-center text-gray-400 hover:text-primary transition-colors z-10"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                disabled={isLoading}
               >
                 {showConfirmPassword ? (
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -271,10 +299,21 @@ export default function Signup() {
           </div>
           
           <button 
-            type="submit" 
-            className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md mt-6"
+            type="submit"
+            disabled={isLoading}
+            className={`w-full text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md mt-6 flex justify-center items-center gap-2 ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-hover'}`}
           >
-            ایجاد حساب
+            {isLoading ? (
+              <>
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                در حال پردازش...
+              </>
+            ) : (
+              'ایجاد حساب'
+            )}
           </button>
         </form>
 

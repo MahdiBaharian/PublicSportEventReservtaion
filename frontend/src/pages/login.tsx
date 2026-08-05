@@ -1,3 +1,4 @@
+// SECTION: LOGIN PAGE
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../services/api';
@@ -13,6 +14,7 @@ export default function Login() {
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [generalError, setGeneralError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
@@ -48,7 +50,11 @@ export default function Login() {
       } else if (response.access) {
         localStorage.setItem('access', response.access);
         localStorage.setItem('refresh', response.refresh);
-        navigate('/dashboard');
+        setSuccessMessage('ورود با موفقیت انجام شد. در حال انتقال...');
+        
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
       }
     } catch (err) {
       setGeneralError('ارتباط با سرور برقرار نشد. لطفا وضعیت اینترنت یا سرور را بررسی کنید.');
@@ -63,6 +69,13 @@ export default function Login() {
         message={generalError} 
         isOpen={!!generalError} 
         onClose={() => setGeneralError('')} 
+      />
+      <Feedback 
+        type="toast" 
+        status="success" 
+        message={successMessage} 
+        isOpen={!!successMessage} 
+        onClose={() => setSuccessMessage('')} 
       />
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
