@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const authApi = {
   signup: async (data: any) => {
@@ -94,6 +94,27 @@ export const ticketApi = {
     const res = await fetch(`${API_BASE_URL}/tickets/search/?${queryParams.toString()}`, {
       method: 'GET',
       headers: { 'Content-Type': 'application/json' },
+    });
+    return res.json();
+  },
+
+  getDetails: async (ticketId: string) => {
+    const res = await fetch(`${API_BASE_URL}/tickets/${ticketId}/`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return res.json();
+  },
+
+  reserve: async (data: { ticket_id: number; quantity: number; seat_info: string }) => {
+    const token = localStorage.getItem('access');
+    const res = await fetch(`${API_BASE_URL}/reservations/`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(data),
     });
     return res.json();
   },

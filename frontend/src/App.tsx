@@ -7,6 +7,7 @@ import Layout from './components/Layout';
 import Dashboard from './pages/dashboard';
 import Profile from './pages/profile';
 import Search from './pages/search';
+import TicketDetail from './pages/ticket-detail';
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
           <Route path="search" element={<Search />} />
           <Route path="reservations" element={<div className="p-8 text-center font-bold">بلیت‌های من (به زودی)</div>} />
           <Route path="profile" element={<Profile />} />
-          <Route path="tickets/:id" element={<div className="p-8 text-center font-bold">جزئیات بلیت (به زودی)</div>} />
+          <Route path="tickets/:id" element={<TicketDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>
