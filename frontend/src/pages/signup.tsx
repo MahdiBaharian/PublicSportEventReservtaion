@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../services/api';
+import Feedback from '../components/Feedback';
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -12,9 +13,13 @@ export default function Signup() {
     email: '',
     phone_number: '',
     password: '',
+    confirm_password: '',
   });
-  const [error, setError] = useState('');
+  
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [generalError, setGeneralError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const pwd = formData.password;
   const isTyping = pwd.length > 0;
@@ -23,63 +28,109 @@ export default function Signup() {
   const hasLower = /[a-z]/.test(pwd);
   const isPasswordValid = hasMinLen && hasUpper && hasLower;
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^09\d{9}$/;
+
+    if (!formData.first_name.trim()) newErrors.first_name = 'نام الزامی است.';
+    if (!formData.last_name.trim()) newErrors.last_name = 'نام خانوادگی الزامی است.';
+    if (!formData.username.trim()) newErrors.username = 'نام کاربری الزامی است.';
+    
+    if (!formData.email.trim()) {
+      newErrors.email = 'ایمیل الزامی است.';
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'فرمت ایمیل نامعتبر است.';
+    }
+
+    if (!formData.phone_number.trim()) {
+      newErrors.phone_number = 'شماره موبایل الزامی است.';
+    } else if (!phoneRegex.test(formData.phone_number)) {
+      newErrors.phone_number = 'شماره موبایل باید با 09 شروع شود و ۱۱ رقم باشد.';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'رمز عبور الزامی است.';
+    } else if (!isPasswordValid) {
+      newErrors.password = 'رمز عبور شرایط لازم را ندارد.';
+    }
+
+    if (!formData.confirm_password) {
+      newErrors.confirm_password = 'تکرار رمز عبور الزامی است.';
+    } else if (formData.password !== formData.confirm_password) {
+      newErrors.confirm_password = 'رمز عبور و تکرار آن یکسان نیستند.';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: '' });
+    }
+    setGeneralError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     
-    if (!isPasswordValid) {
-      setError('لطفا تمامی شرایط رمز عبور را رعایت کنید.');
-      return;
-    }
+    if (!validateForm()) return;
 
-    const response = await authApi.signup(formData);
-    
-    if (response.error) {
-      setError(response.error);
-    } else {
-      navigate(`/verify-otp?email=${formData.email}&action=signup`);
+    try {
+      const { confirm_password, ...submitData } = formData;
+      const response = await authApi.signup(submitData);
+      
+      if (response.error) {
+        setGeneralError(response.error);
+      } else {
+        navigate(`/verify-otp?email=${formData.email}&action=signup`);
+      }
+    } catch (err) {
+      setGeneralError('ارتباط با سرور برقرار نشد. لطفا وضعیت اینترنت یا سرور را بررسی کنید.');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4" dir="rtl">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 py-12" dir="rtl">
+      <Feedback 
+        type="toast" 
+        status="error" 
+        message={generalError} 
+        isOpen={!!generalError} 
+        onClose={() => setGeneralError('')} 
+      />
+
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
         <div className="text-center mb-8">
           <h2 className="text-3xl font-extrabold text-gray-900">ثبت‌نام در سامانه</h2>
           <p className="text-gray-500 mt-2 text-sm">حساب کاربری جدید ایجاد کنید</p>
         </div>
-        
-        {error && (
-          <div className="bg-red-50 border-r-4 border-red-500 text-red-700 p-4 rounded-lg mb-6 text-sm font-medium">
-            {error}
-          </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-700 text-sm font-bold mb-2">نام</label>
               <input 
                 type="text" 
                 name="first_name" 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-white text-gray-900" 
+                value={formData.first_name}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.first_name ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
                 onChange={handleChange} 
-                required 
               />
+              <Feedback type="inline" status="error" message={errors.first_name} />
             </div>
             <div>
               <label className="block text-gray-700 text-sm font-bold mb-2">نام خانوادگی</label>
               <input 
                 type="text" 
                 name="last_name" 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-white text-gray-900" 
+                value={formData.last_name}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.last_name ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
                 onChange={handleChange} 
-                required 
               />
+              <Feedback type="inline" status="error" message={errors.last_name} />
             </div>
           </div>
 
@@ -88,11 +139,12 @@ export default function Signup() {
             <input 
               type="text" 
               name="username" 
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-white text-gray-900" 
+              value={formData.username}
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.username ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
               dir="ltr"
               onChange={handleChange} 
-              required 
             />
+            <Feedback type="inline" status="error" message={errors.username} />
           </div>
 
           <div>
@@ -100,11 +152,12 @@ export default function Signup() {
             <input 
               type="email" 
               name="email" 
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-white text-gray-900" 
+              value={formData.email}
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
               dir="ltr"
               onChange={handleChange} 
-              required 
             />
+            <Feedback type="inline" status="error" message={errors.email} />
           </div>
 
           <div>
@@ -112,11 +165,13 @@ export default function Signup() {
             <input 
               type="text" 
               name="phone_number" 
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition-all bg-white text-gray-900" 
+              value={formData.phone_number}
+              placeholder="09..."
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.phone_number ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
               dir="ltr"
               onChange={handleChange} 
-              required 
             />
+            <Feedback type="inline" status="error" message={errors.phone_number} />
           </div>
 
           <div>
@@ -159,14 +214,14 @@ export default function Signup() {
               <input 
                 type={showPassword ? "text" : "password"} 
                 name="password" 
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all bg-white text-gray-900" 
+                value={formData.password}
+                className={`w-full pr-4 pl-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
                 dir="ltr"
                 onChange={handleChange} 
-                required 
               />
               <button
                 type="button"
-                className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500 hover:text-primary transition-colors"
+                className="absolute inset-y-0 left-0 pl-4 pr-3 flex items-center text-gray-400 hover:text-primary transition-colors z-10"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
@@ -181,15 +236,54 @@ export default function Signup() {
                 )}
               </button>
             </div>
+            <Feedback type="inline" status="error" message={errors.password} />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2">تکرار رمز عبور</label>
+            <div className="relative">
+              <input 
+                type={showConfirmPassword ? "text" : "password"} 
+                name="confirm_password" 
+                value={formData.confirm_password}
+                className={`w-full pr-4 pl-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.confirm_password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
+                dir="ltr"
+                onChange={handleChange} 
+              />
+              <button
+                type="button"
+                className="absolute inset-y-0 left-0 pl-4 pr-3 flex items-center text-gray-400 hover:text-primary transition-colors z-10"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            <Feedback type="inline" status="error" message={errors.confirm_password} />
           </div>
           
           <button 
             type="submit" 
-            className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md mt-4"
+            className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 px-4 rounded-lg transition-colors duration-200 shadow-md mt-6"
           >
             ایجاد حساب
           </button>
         </form>
+
+        <div className="mt-8 text-center text-sm text-gray-600 border-t pt-6">
+          از قبل حساب کاربری دارید؟{' '}
+          <Link to="/login" className="text-primary font-bold hover:underline">
+            وارد شوید
+          </Link>
+        </div>
       </div>
     </div>
   );
