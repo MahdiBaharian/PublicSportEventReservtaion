@@ -7,3 +7,5 @@ django-redis
 PyJWT
 elasticsearch>=8.11,<9
 django-cors-headers
+jdatetime
+pytz

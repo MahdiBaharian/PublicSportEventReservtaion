@@ -1,3 +1,4 @@
+# Elasticsearch Utils
 import os
 from elasticsearch import Elasticsearch
 
@@ -14,6 +15,7 @@ def create_index():
                     "away_team": {"type": "text", "analyzer": "standard"},
                     "venue_city": {"type": "keyword"},
                     "price": {"type": "double"},
+                    "ticket_date_time": {"type": "date"},
                     "suggest": {"type": "completion"}
                 }
             }
@@ -28,6 +30,7 @@ def index_ticket(ticket_data):
         "away_team": ticket_data['away_team'],
         "venue_city": ticket_data['venue_city'],
         "price": float(ticket_data['price']),
+        "ticket_date_time": ticket_data['ticket_date_time'],
         "suggest": {
             "input": [ticket_data['home_team'], ticket_data['away_team'], ticket_data['venue_city']]
         }

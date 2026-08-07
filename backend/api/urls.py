@@ -1,4 +1,5 @@
 from django.urls import path
+
 from .views.signup import signup
 from .views.login import login
 from .views.send_otp import send_otp
@@ -16,6 +17,7 @@ from .views.user_bookings import get_user_bookings
 from .views.cancel_ticket import cancel_ticket_and_refund
 from .views.report_issue import report_ticket_issue
 from .views.ticket_management import ticket_management
+from .views.login import admin_login
 
 urlpatterns = [
     path('auth/signup/', signup),
@@ -23,6 +25,7 @@ urlpatterns = [
     path('auth/send-otp/', send_otp),
     path('auth/verify-otp/', verify_otp),
     path('auth/forget-password/', forget_password),
+    path('auth/admin-login/', admin_login),
     path('profile/update/', update_profile),
     path('locations/', get_locations),
     path('tickets/search/', search_tickets),

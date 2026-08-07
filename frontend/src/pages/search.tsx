@@ -10,6 +10,7 @@ interface Ticket {
   away_team: string;
   venue_city: string;
   price: number;
+  ticket_date_time: string;
 }
 
 export default function Search() {
@@ -42,6 +43,65 @@ export default function Search() {
     handleSearch();
   }, []);
 
+  const parseJalaliDateTime = (jalaliStr: string) => {
+    if (!jalaliStr) return new Date(NaN);
+    
+    if (jalaliStr.includes('T') || jalaliStr.includes('-')) {
+      return new Date(jalaliStr);
+    }
+
+    try {
+      const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+      const englishStr = jalaliStr.replace(/[۰-۹]/g, (w) => persianDigits.indexOf(w).toString());
+      
+      const dateMatch = englishStr.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+      const timeMatch = englishStr.match(/(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
+      
+      if (!dateMatch) return new Date(NaN);
+
+      const jy = parseInt(dateMatch[1]);
+      const jm = parseInt(dateMatch[2]);
+      const jd = parseInt(dateMatch[3]);
+
+      const h = timeMatch ? parseInt(timeMatch[1]) : 0;
+      const m = timeMatch ? parseInt(timeMatch[2]) : 0;
+      const s = timeMatch && timeMatch[3] ? parseInt(timeMatch[3]) : 0;
+
+      let jyAdjusted = jy + 1595;
+      let days = -355668 + (365 * jyAdjusted) + Math.floor((jyAdjusted / 33) * 8) + Math.floor(((jyAdjusted % 33) + 3) / 4) + jd;
+      
+      if (jm < 7) days += (jm - 1) * 31;
+      else days += 186 + (jm - 7) * 30;
+      
+      let gy = 400 * Math.floor(days / 146097);
+      days %= 146097;
+      if (days > 36524) {
+        gy += 100 * Math.floor(--days / 36524);
+        days %= 36524;
+        if (days >= 365) days++;
+      }
+      gy += 4 * Math.floor(days / 1461);
+      days %= 1461;
+      if (days > 365) {
+        gy += Math.floor((days - 1) / 365);
+        days = (days - 1) % 365;
+      }
+      
+      let gd = days + 1;
+      const isLeap = ((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0));
+      const sal_a = [0, 31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+      let gm;
+      for (gm = 0; gm < 13 && gd > sal_a[gm]; gm++) gd -= sal_a[gm];
+
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const isoString = `${gy}-${pad(gm)}-${pad(gd)}T${pad(h)}:${pad(m)}:${pad(s)}+03:30`;
+      
+      return new Date(isoString);
+    } catch (e) {
+      return new Date(NaN);
+    }
+  };
+
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setIsLoading(true);
@@ -50,7 +110,11 @@ export default function Search() {
     try {
       const response = await ticketApi.search(filters);
       if (Array.isArray(response)) {
-        setTickets(response);
+        const validTickets = response.filter((t: Ticket) => {
+          const matchDate = parseJalaliDateTime(t.ticket_date_time);
+          return matchDate.getTime() > Date.now();
+        });
+        setTickets(validTickets);
       } else if (response.error) {
         setGeneralError(response.error);
       }

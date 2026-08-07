@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { authApi } from '../services/api';
+import { adminApi } from '../services/api';
 import Feedback from '../components/Feedback';
 
-export default function Login() {
+export default function AdminLogin() {
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
@@ -20,7 +20,7 @@ export default function Login() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.identifier.trim()) {
-      newErrors.identifier = 'وارد کردن شماره موبایل یا ایمیل الزامی است.';
+      newErrors.identifier = 'وارد کردن نام کاربری، موبایل یا ایمیل الزامی است.';
     }
     if (!formData.password) {
       newErrors.password = 'وارد کردن رمز عبور الزامی است.';
@@ -45,17 +45,17 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await authApi.login(formData);
+      const response = await adminApi.login(formData);
       
       if (response.error) {
         setGeneralError(response.error);
       } else if (response.access) {
         localStorage.setItem('access', response.access);
         localStorage.setItem('refresh', response.refresh);
-        setSuccessMessage('ورود با موفقیت انجام شد. در حال انتقال...');
+        setSuccessMessage('ورود با موفقیت انجام شد. در حال انتقال به پنل مدیریت...');
         
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate('/admin/dashboard');
         }, 1500);
       }
     } catch (err) {
@@ -84,13 +84,13 @@ export default function Login() {
 
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-extrabold text-gray-900">ورود به حساب</h2>
-          <p className="text-gray-500 mt-2 text-sm">جهت رزرو بلیت وارد سامانه شوید</p>
+          <h2 className="text-3xl font-extrabold text-gray-900">ورود مدیریت سیستم</h2>
+          <p className="text-gray-500 mt-2 text-sm">جهت مدیریت سامانه وارد شوید</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2"> شماره موبایل </label>
+            <label className="block text-gray-700 text-sm font-bold mb-2">  شماره موبایل </label>
             <input 
               type="text" 
               name="identifier" 
@@ -155,17 +155,10 @@ export default function Login() {
                 در حال پردازش...
               </>
             ) : (
-              'ورود به سامانه'
+              'ورود به پنل ادمین'
             )}
           </button>
         </form>
-
-        <div className="mt-8 text-center text-sm text-gray-600 border-t pt-6">
-          حساب کاربری ندارید؟{' '}
-          <Link to="/signup" className="text-primary font-bold hover:underline">
-            ثبت‌نام کنید
-          </Link>
-        </div>
       </div>
     </div>
   );

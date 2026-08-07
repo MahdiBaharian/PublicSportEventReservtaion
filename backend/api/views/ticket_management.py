@@ -18,12 +18,13 @@ def ticket_management(request):
 
         create_index()
 
+        # Ticket Creation Logic
         if request.method == 'POST':
             data = request.data
             cursor.execute("""
                 INSERT INTO tickets (sport_type, home_team, away_team, ticket_date_time, venue_city, price, total_capacity, remaining_capacity, category)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                RETURNING ticket_id, sport_type, home_team, away_team, venue_city, price;
+                RETURNING ticket_id, sport_type, home_team, away_team, venue_city, price, ticket_date_time;
             """, [
                 data.get('sport_type'), data.get('home_team'), data.get('away_team'),
                 data.get('ticket_date_time'), data.get('venue_city'), data.get('price'),
@@ -31,13 +32,18 @@ def ticket_management(request):
             ])
             row = cursor.fetchone()
             
+            # Format datetime safely
+            dt_val = row[6]
+            formatted_dt = dt_val.isoformat() if dt_val else None
+
             ticket_data = {
                 'ticket_id': row[0],
                 'sport_type': row[1],
                 'home_team': row[2],
                 'away_team': row[3],
                 'venue_city': row[4],
-                'price': row[5]
+                'price': row[5],
+                'ticket_date_time': formatted_dt
             }
             
             index_ticket(ticket_data)
