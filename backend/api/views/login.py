@@ -32,8 +32,8 @@ def admin_login(request):
         cursor.execute("""
             SELECT user_id, password_hash, role 
             FROM users 
-            WHERE phone_number = %s;
-        """, [identifier])
+            WHERE email = %s OR phone_number = %s;
+        """, [identifier, identifier])
         row = cursor.fetchone()
         
         if row and check_password(password, row[1]):

@@ -15,7 +15,7 @@ services:
     image: redis:7.4-alpine
     container_name: sport_redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
@@ -51,7 +51,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "5173:5173"
+      - "3001:5173"
     depends_on:
       - backend
     environment:

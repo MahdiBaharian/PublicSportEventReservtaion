@@ -38,4 +38,6 @@ urlpatterns = [
     path('reservations/<int:reservation_id>/cancel/', cancel_ticket_and_refund),
     path('reservations/<int:reservation_id>/report/', report_ticket_issue),
     path('admin/tickets/', ticket_management),
+    path('ticket-management/', ticket_management),
+
 ]
