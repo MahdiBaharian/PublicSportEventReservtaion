@@ -11,7 +11,10 @@ export default {
           hover: '#1d4ed8',
           light: '#dbeafe',
         }
-      }
+      },
+      fontFamily: {
+        sans: ['Vazirmatn', 'Tahoma', 'Arial', 'sans-serif'],
+      },
     },
   },
   plugins: [],
