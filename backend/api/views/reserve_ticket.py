@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.db import connection
+from django.core.cache import cache
 from api.utils import get_user_id_from_request
 import jdatetime
 import pytz
@@ -37,22 +38,29 @@ def reserve_ticket(request):
         seat_info = request.data.get('seat_info', '')
         
         with connection.cursor() as cursor:
-            cursor.execute("SELECT remaining_capacity FROM tickets WHERE ticket_id = %s;", [ticket_id])
+            # استفاده از FOR UPDATE برای جلوگیری از مشکلات همزمانی دیتابیس
+            cursor.execute("SELECT remaining_capacity FROM tickets WHERE ticket_id = %s FOR UPDATE;", [ticket_id])
             capacity_row = cursor.fetchone()
             
             if not capacity_row or capacity_row[0] < quantity:
                 return Response({'error': 'ظرفیت کافی نیست.'}, status=400)
+            
+            # کسر تعداد خریداری شده از ظرفیت کل بلیت
+            cursor.execute("UPDATE tickets SET remaining_capacity = remaining_capacity - %s WHERE ticket_id = %s;", [quantity, ticket_id])
                 
             cursor.execute("""
                 INSERT INTO reservations (user_id, ticket_id, quantity, seat_info, reservation_status, reserved_at)
-                VALUES (%s, %s, %s, %s, 'reserved', CURRENT_TIMESTAMP)
+                VALUES (%s, %s, %s, %s, 'pending', CURRENT_TIMESTAMP)
                 RETURNING reservation_id, reserved_at;
             """, [user_id, ticket_id, quantity, seat_info])
             
             res_row = cursor.fetchone()
             
-            # Format reservation timestamp for Tehran timezone
             reserved_at_formatted = convert_to_tehran_jalali(res_row[1])
+            
+            # پاک کردن کش کاربر برای آپدیت شدن آنی لیست بلیت‌ها
+            cache_key = f'user_bookings_{user_id}'
+            cache.delete(cache_key)
             
             return Response({
                 'message': 'رزرو موقت انجام شد. ۱۰ دقیقه برای پرداخت فرصت دارید.',
@@ -74,7 +82,6 @@ def reserve_ticket(request):
             columns = [col[0] for col in cursor.description]
             rows = cursor.fetchall()
             
-            # Process datetime fields for reservations list
             reservations = []
             for row in rows:
                 item = dict(zip(columns, row))
