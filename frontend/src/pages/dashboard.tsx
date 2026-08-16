@@ -1,6 +1,35 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { ticketApi } from '../services/api';
 
 export default function Dashboard() {
+  const [stats, setStats] = useState({ active: 0, paid: 0, cancelled: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await ticketApi.getReservations();
+        if (Array.isArray(res)) {
+          let active = 0, paid = 0, cancelled = 0;
+          res.forEach((r) => {
+            const s = String(r.reservation_status || '').toLowerCase();
+            if (s === 'paid' || s.includes('success')) {
+              paid += 1;
+            } else if (s === 'cancelled' || s.includes('fail')) {
+              cancelled += 1;
+            } else if (s === 'reserved' || s === 'pending') {
+              active += 1;
+            }
+          });
+          setStats({ active, paid, cancelled });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
@@ -28,7 +57,7 @@ export default function Dashboard() {
           </div>
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-1">بلیت‌های فعال</h3>
-            <p className="text-2xl font-black text-primary">۰</p>
+            <p className="text-2xl font-black text-primary">{stats.active.toLocaleString('fa-IR')}</p>
           </div>
         </div>
         
@@ -40,7 +69,7 @@ export default function Dashboard() {
           </div>
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-1">پرداخت‌های موفق</h3>
-            <p className="text-2xl font-black text-green-600">۰</p>
+            <p className="text-2xl font-black text-green-600">{stats.paid.toLocaleString('fa-IR')}</p>
           </div>
         </div>
 
@@ -52,7 +81,7 @@ export default function Dashboard() {
           </div>
           <div>
             <h3 className="text-lg font-bold text-gray-900 mb-1">بلیت‌های لغوشده</h3>
-            <p className="text-2xl font-black text-red-600">۰</p>
+            <p className="text-2xl font-black text-red-600">{stats.cancelled.toLocaleString('fa-IR')}</p>
           </div>
         </div>
       </div>
