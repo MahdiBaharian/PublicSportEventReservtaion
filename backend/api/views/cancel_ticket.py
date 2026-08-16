@@ -12,10 +12,10 @@ def cancel_ticket_and_refund(request, reservation_id):
 
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT r.reservation_status, r.ticket_id, r.quantity, t.price, p.amount
+            SELECT r.reservation_status, r.ticket_id, r.quantity, t.price, 
+                   (SELECT amount FROM payments WHERE reservation_id = r.reservation_id AND transaction_status = 'success' LIMIT 1) as amount
             FROM reservations r
             JOIN tickets t ON r.ticket_id = t.ticket_id
-            LEFT JOIN payments p ON r.reservation_id = p.reservation_id
             WHERE r.reservation_id = %s AND r.user_id = %s FOR UPDATE;
         """, [reservation_id, user_id])
         row = cursor.fetchone()
@@ -29,7 +29,7 @@ def cancel_ticket_and_refund(request, reservation_id):
         cursor.execute("UPDATE tickets SET remaining_capacity = remaining_capacity + %s WHERE ticket_id = %s;", [quantity, ticket_id])
 
         if status == 'paid':
-            refund_amount = amount if amount else (quantity * price)
+            refund_amount = float(amount) if amount is not None else (float(quantity) * float(price))
             cursor.execute("UPDATE users SET wallet_balance = COALESCE(wallet_balance, 0) + %s WHERE user_id = %s;", [refund_amount, user_id])
 
     cache_key = f'user_bookings_{user_id}'

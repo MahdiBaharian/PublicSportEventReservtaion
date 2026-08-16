@@ -144,6 +144,7 @@ export default function Reservations() {
         setGeneralError(response.error);
       } else {
         setSuccessMessage(response.message || 'بلیت با موفقیت لغو شد.');
+        window.dispatchEvent(new Event('walletUpdated'));
       }
       fetchReservations();
     } catch (err) {
