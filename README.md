@@ -1,6 +1,7 @@
 # Sports Ticket Reservation System
 
 ## Overview
+<img width="1920" height="925" alt="dashbord" src="https://github.com/user-attachments/assets/c8eed3ed-7953-4268-8671-be8662a5a3f8" />
 
 This project is a database-backed sports ticket reservation and
 purchasing system. The system allows users to register and authenticate,
@@ -40,6 +41,7 @@ Redis is required for OTP storage and frequently accessed cached data.
 -   User profile updates
 
 ### Ticket Discovery
+<img width="1920" height="922" alt="search_tickets" src="https://github.com/user-attachments/assets/9b7db49e-1898-44d3-b60c-bf31ed50fef5" />
 
 -   Search available tickets
 -   Filter by sport
@@ -52,6 +54,7 @@ Redis is required for OTP storage and frequently accessed cached data.
 -   Cache repeated search requests
 
 ### Reservations and Payments
+<img width="1920" height="917" alt="payment" src="https://github.com/user-attachments/assets/24a67ea1-b10c-4ae8-81ad-ace089955b64" />
 
 -   Temporary ticket reservations
 -   Reservation quantity and seat information
@@ -161,6 +164,7 @@ integrity.
 ------------------------------------------------------------------------
 
 # Phase 2 --- Database and SQL
+<img width="1337" height="871" alt="erd" src="https://github.com/user-attachments/assets/e107e4ca-8346-42d2-8ce7-3f3fcfc6b2d9" />
 
 The SQL implementation contains the database schema and the SQL
 operations required by the project.
@@ -221,6 +225,7 @@ Authorization: Bearer <access_token>
 ------------------------------------------------------------------------
 
 ## 1. Login
+<img width="1920" height="920" alt="login" src="https://github.com/user-attachments/assets/4893fbc2-d226-422e-9abe-222579692c51" />
 
 ### Function
 
@@ -473,6 +478,7 @@ password with a securely hashed value.
 ------------------------------------------------------------------------
 
 ## 6. Update Profile
+<img width="1920" height="922" alt="profile" src="https://github.com/user-attachments/assets/2810acf4-e169-4ea4-9264-448a8fecb36e" />
 
 ### Function
 
@@ -1227,6 +1233,7 @@ curl -X POST http://localhost:8000/api/...   -H "Authorization: Bearer <access_t
     "seat_info": "A-12,A-13"
   }'
 ```
+
 
 ### Example --- Payment
 
