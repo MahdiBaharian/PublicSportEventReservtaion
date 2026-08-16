@@ -38,14 +38,12 @@ def reserve_ticket(request):
         seat_info = request.data.get('seat_info', '')
         
         with connection.cursor() as cursor:
-            # استفاده از FOR UPDATE برای جلوگیری از مشکلات همزمانی دیتابیس
             cursor.execute("SELECT remaining_capacity FROM tickets WHERE ticket_id = %s FOR UPDATE;", [ticket_id])
             capacity_row = cursor.fetchone()
             
             if not capacity_row or capacity_row[0] < quantity:
                 return Response({'error': 'ظرفیت کافی نیست.'}, status=400)
             
-            # کسر تعداد خریداری شده از ظرفیت کل بلیت
             cursor.execute("UPDATE tickets SET remaining_capacity = remaining_capacity - %s WHERE ticket_id = %s;", [quantity, ticket_id])
                 
             cursor.execute("""
@@ -58,7 +56,6 @@ def reserve_ticket(request):
             
             reserved_at_formatted = convert_to_tehran_jalali(res_row[1])
             
-            # پاک کردن کش کاربر برای آپدیت شدن آنی لیست بلیت‌ها
             cache_key = f'user_bookings_{user_id}'
             cache.delete(cache_key)
             

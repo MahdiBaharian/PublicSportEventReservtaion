@@ -39,18 +39,17 @@ def get_user_bookings(request):
 
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT r.reservation_id, r.quantity, r.reservation_status, r.reserved_at,
-                   t.sport_type, t.home_team, t.away_team, t.ticket_date_time, t.venue_city, t.ticket_id
+            SELECT r.reservation_id, r.quantity, r.reservation_status, r.reserved_at, r.seat_info,
+                   t.sport_type, t.home_team, t.away_team, t.ticket_date_time, t.venue_city, t.ticket_id, t.price, t.category
             FROM reservations r
             JOIN tickets t ON r.ticket_id = t.ticket_id
             WHERE r.user_id = %s
-            ORDER BY t.ticket_date_time DESC;
+            ORDER BY r.reserved_at DESC;
         """, [user_id])
         
         columns = [col[0] for col in cursor.description]
         rows = cursor.fetchall()
         
-        # Format datetime values for user bookings list
         bookings = []
         for row in rows:
             item = dict(zip(columns, row))
