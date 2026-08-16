@@ -14,6 +14,9 @@ export default function Reservations() {
   const [penaltyInfo, setPenaltyInfo] = useState<any>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportData, setReportData] = useState({ reservation_id: null, report_type: 'technical_issue', description: '' });
+
   const fetchReservations = async () => {
     setIsLoading(true);
     try {
@@ -40,34 +43,23 @@ export default function Reservations() {
 
   const parseJalaliDateTime = (jalaliStr: string) => {
     if (!jalaliStr) return new Date(NaN);
-    
-    if (jalaliStr.includes('T') || jalaliStr.includes('-')) {
-      return new Date(jalaliStr);
-    }
-
+    if (jalaliStr.includes('T') || jalaliStr.includes('-')) return new Date(jalaliStr);
     try {
       const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
       const englishStr = jalaliStr.replace(/[۰-۹]/g, (w) => persianDigits.indexOf(w).toString());
-      
       const dateMatch = englishStr.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
       const timeMatch = englishStr.match(/(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
-      
       if (!dateMatch) return new Date(NaN);
-
       const jy = parseInt(dateMatch[1]);
       const jm = parseInt(dateMatch[2]);
       const jd = parseInt(dateMatch[3]);
-
       const h = timeMatch ? parseInt(timeMatch[1]) : 0;
       const m = timeMatch ? parseInt(timeMatch[2]) : 0;
       const s = timeMatch && timeMatch[3] ? parseInt(timeMatch[3]) : 0;
-
       let jyAdjusted = jy + 1595;
       let days = -355668 + (365 * jyAdjusted) + Math.floor((jyAdjusted / 33) * 8) + Math.floor(((jyAdjusted % 33) + 3) / 4) + jd;
-      
       if (jm < 7) days += (jm - 1) * 31;
       else days += 186 + (jm - 7) * 30;
-      
       let gy = 400 * Math.floor(days / 146097);
       days %= 146097;
       if (days > 36524) {
@@ -81,16 +73,13 @@ export default function Reservations() {
         gy += Math.floor((days - 1) / 365);
         days = (days - 1) % 365;
       }
-      
       let gd = days + 1;
       const isLeap = ((gy % 4 === 0 && gy % 100 !== 0) || (gy % 400 === 0));
       const sal_a = [0, 31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
       let gm;
       for (gm = 0; gm < 13 && gd > sal_a[gm]; gm++) gd -= sal_a[gm];
-
       const pad = (n: number) => String(n).padStart(2, '0');
       const isoString = `${gy}-${pad(gm)}-${pad(gd)}T${pad(h)}:${pad(m)}:${pad(s)}+03:30`;
-      
       return new Date(isoString);
     } catch (e) {
       return new Date(NaN);
@@ -107,20 +96,12 @@ export default function Reservations() {
 
   const getStatusInfo = (statusStr: string, isExpired: boolean) => {
     const s = String(statusStr || '').toLowerCase();
-
-    if (s === 'paid' || s.includes('success')) {
-      return { label: 'پرداخت شده', color: 'bg-green-100 text-green-800 border-green-200', type: 'confirmed' };
-    }
-    if (s === 'cancelled' || s.includes('fail')) {
-      return { label: 'لغو شده', color: 'bg-red-100 text-red-800 border-red-200', type: 'cancelled' };
-    }
+    if (s === 'paid' || s.includes('success')) return { label: 'پرداخت شده', color: 'bg-green-100 text-green-800 border-green-200', type: 'confirmed' };
+    if (s === 'cancelled' || s.includes('fail')) return { label: 'لغو شده', color: 'bg-red-100 text-red-800 border-red-200', type: 'cancelled' };
     if (s === 'reserved' || s === 'pending') {
-      if (isExpired) {
-        return { label: 'منقضی شده (پایان مهلت پرداخت)', color: 'bg-gray-200 text-gray-700 border-gray-300', type: 'expired' };
-      }
+      if (isExpired) return { label: 'منقضی شده (پایان مهلت پرداخت)', color: 'bg-gray-200 text-gray-700 border-gray-300', type: 'expired' };
       return { label: 'در انتظار پرداخت', color: 'bg-yellow-100 text-yellow-800 border-yellow-200', type: 'pending' };
     }
-
     return { label: 'نامشخص', color: 'bg-gray-100 text-gray-800 border-gray-200', type: 'unknown' };
   };
 
@@ -152,23 +133,19 @@ export default function Reservations() {
   const handleConfirmCancel = async () => {
     const idToCancel = penaltyInfo ? penaltyInfo.id : cancelId;
     if (!idToCancel) return;
-    
     setIsProcessing(true);
     setGeneralError('');
-
     try {
       const isPaid = penaltyInfo !== null;
       const response = isPaid 
         ? await ticketApi.cancelPaidReservation(idToCancel)
         : await ticketApi.cancelReservation(idToCancel);
-
       if (response.error) {
         setGeneralError(response.error);
-        fetchReservations();
       } else {
         setSuccessMessage(response.message || 'بلیت با موفقیت لغو شد.');
-        fetchReservations();
       }
+      fetchReservations();
     } catch (err) {
       setGeneralError('خطا در ارتباط با سرور.');
     } finally {
@@ -178,22 +155,32 @@ export default function Reservations() {
     }
   };
 
+  const handleReportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reportData.reservation_id) return;
+    setIsProcessing(true);
+    try {
+      const res = await ticketApi.submitReport(reportData.reservation_id, reportData.report_type, reportData.description);
+      if (res.error) setGeneralError(res.error);
+      else setSuccessMessage('گزارش شما با موفقیت ثبت شد.');
+    } catch (err) {
+      setGeneralError('خطا در ثبت گزارش');
+    } finally {
+      setIsProcessing(false);
+      setReportModalOpen(false);
+      setReportData({ reservation_id: null, report_type: 'technical_issue', description: '' });
+    }
+  };
+
   const sortedReservations = [...reservations].sort((a, b) => {
     const statusOrder: Record<string, number> = { pending: 1, confirmed: 2, expired: 3, cancelled: 3, unknown: 4 };
-    
     const aResDate = parseJalaliDateTime(a.reserved_at);
     const bResDate = parseJalaliDateTime(b.reserved_at);
-
     const isExpA = aResDate.getTime() ? (Date.now() - aResDate.getTime() > 10 * 60 * 1000) : false;
     const isExpB = bResDate.getTime() ? (Date.now() - bResDate.getTime() > 10 * 60 * 1000) : false;
-
     const orderA = statusOrder[getStatusInfo(a.reservation_status, isExpA).type] || 5;
     const orderB = statusOrder[getStatusInfo(b.reservation_status, isExpB).type] || 5;
-    
-    if (orderA !== orderB) {
-      return orderA - orderB;
-    }
-    
+    if (orderA !== orderB) return orderA - orderB;
     return bResDate.getTime() - aResDate.getTime();
   });
 
@@ -210,6 +197,43 @@ export default function Reservations() {
         onClose={() => { setCancelId(null); setPenaltyInfo(null); }} 
         onConfirm={handleConfirmCancel} 
       />
+
+      {reportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4">ثبت گزارش مشکل</h3>
+            <form onSubmit={handleReportSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-bold mb-2">نوع مشکل</label>
+                <select 
+                  className="w-full p-2 border rounded" 
+                  value={reportData.report_type} 
+                  onChange={e => setReportData({...reportData, report_type: e.target.value})}
+                >
+                  <option value="technical_issue">مشکل فنی</option>
+                  <option value="payment_issue">مشکل پرداخت</option>
+                  <option value="seat_issue">مشکل صندلی</option>
+                  <option value="venue_issue">مشکل ورزشگاه</option>
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-bold mb-2">توضیحات</label>
+                <textarea 
+                  required
+                  className="w-full p-2 border rounded" 
+                  rows={4}
+                  value={reportData.description} 
+                  onChange={e => setReportData({...reportData, description: e.target.value})}
+                ></textarea>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setReportModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">انصراف</button>
+                <button type="submit" disabled={isProcessing} className="px-4 py-2 bg-blue-600 text-white rounded">ثبت گزارش</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-6 border-b pb-4">
@@ -228,35 +252,29 @@ export default function Reservations() {
             {sortedReservations.map((res) => {
               const resId = res.reservation_id;
               const sportType = translateSportType(res.sport_type || res.sport || res.category);
-
               const unitPrice = Number(res.price || 0);
               const quantity = Number(res.quantity || 1);
               const totalPrice = unitPrice * quantity;
-
               const matchTitle = `${res.home_team || 'تیم میزبان'} VS ${res.away_team || 'تیم مهمان'}`;
-
               const resDate = parseJalaliDateTime(res.reserved_at);
               const matchDate = parseJalaliDateTime(res.ticket_date_time);
-
               const isExpired10Mins = resDate.getTime() ? (Date.now() - resDate.getTime() > 10 * 60 * 1000) : false;
               const statusInfo = getStatusInfo(res.reservation_status, isExpired10Mins); 
-              
               const isPending = statusInfo.type === 'pending';
               const isConfirmed = statusInfo.type === 'confirmed';
               const isCanceledOrExpired = statusInfo.type === 'cancelled' || statusInfo.type === 'expired';
-
               const isMatchTimeValid = matchDate.getTime() ? (matchDate.getTime() > Date.now()) : false;
 
               const showPayButton = isMatchTimeValid && isPending;
               const showCancelButton = isMatchTimeValid && (isPending || isConfirmed);
               const showReReserveButton = isMatchTimeValid && isCanceledOrExpired;
+              const showReportButton = isConfirmed;
 
-              const showActionsBlock = showPayButton || showCancelButton || showReReserveButton;
+              const showActionsBlock = showPayButton || showCancelButton || showReReserveButton || showReportButton;
 
               return (
                 <div key={resId} className={`bg-white border rounded-xl overflow-hidden transition-shadow ${showActionsBlock ? 'border-gray-200 hover:shadow-md' : 'border-gray-100 opacity-80'}`}>
                   <div className="p-6 flex flex-col md:flex-row gap-6 items-start md:items-center">
-
                     <div className="flex-1 space-y-3 w-full">
                       <div className="flex items-center gap-3">
                         <span className="text-xs font-bold px-2 py-1 bg-gray-100 text-gray-600 rounded">
@@ -266,11 +284,9 @@ export default function Reservations() {
                           {statusInfo.label}
                         </span>
                       </div>
-
                       <h3 className="text-lg font-black text-gray-900" dir="rtl">
                         {res.home_team || 'تیم میزبان'} <span className="text-gray-400 mx-1 text-sm font-sans">VS</span> {res.away_team || 'تیم مهمان'}
                       </h3>
-
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                         <div className="flex items-center gap-1">
                           <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -288,7 +304,6 @@ export default function Reservations() {
                         )}
                       </div>
                     </div>
-
                     <div className="w-full md:w-auto bg-gray-50 p-4 rounded-lg border border-gray-100 flex flex-col justify-center min-w-[220px]">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-gray-500 text-sm">تعداد:</span>
@@ -320,7 +335,6 @@ export default function Reservations() {
                           تکمیل پرداخت
                         </button>
                       )}
-
                       {showReReserveButton && (
                         <button
                           onClick={() => navigate(`/dashboard/tickets/${res.ticket_id}`)}
@@ -330,7 +344,6 @@ export default function Reservations() {
                           رزرو مجدد
                         </button>
                       )}
-
                       {showCancelButton && (
                         <button
                           onClick={() => handleCancelClick(res)}
@@ -338,6 +351,18 @@ export default function Reservations() {
                           className="w-full sm:w-auto px-6 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 font-bold rounded-lg transition-colors shadow-sm"
                         >
                           {isConfirmed ? 'لغو بلیت' : 'انصراف از خرید'}
+                        </button>
+                      )}
+                      {showReportButton && (
+                        <button
+                          onClick={() => {
+                            setReportData({ ...reportData, reservation_id: resId });
+                            setReportModalOpen(true);
+                          }}
+                          disabled={isProcessing}
+                          className="w-full sm:w-auto px-6 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-lg transition-colors shadow-sm"
+                        >
+                          ثبت گزارش
                         </button>
                       )}
                     </div>

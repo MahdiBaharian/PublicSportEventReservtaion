@@ -5,6 +5,7 @@ from .views.login import login
 from .views.send_otp import send_otp
 from .views.verify_otp import verify_otp
 from .views.forget_password import forget_password
+from .views.get_profile import get_profile
 from .views.update_profile import update_profile
 from .views.get_venues import get_locations
 from .views.search_tickets import search_tickets
@@ -18,6 +19,7 @@ from .views.cancel_ticket import cancel_ticket_and_refund
 from .views.report_issue import report_ticket_issue
 from .views.ticket_management import ticket_management
 from .views.login import admin_login
+from .views.auto_cancel import auto_cancel_expired_reservations
 
 urlpatterns = [
     path('auth/signup/', signup),
@@ -26,6 +28,7 @@ urlpatterns = [
     path('auth/verify-otp/', verify_otp),
     path('auth/forget-password/', forget_password),
     path('auth/admin-login/', admin_login),
+    path('profile/', get_profile),
     path('profile/update/', update_profile),
     path('locations/', get_locations),
     path('tickets/search/', search_tickets),
@@ -39,5 +42,5 @@ urlpatterns = [
     path('reservations/<int:reservation_id>/report/', report_ticket_issue),
     path('admin/tickets/', ticket_management),
     path('ticket-management/', ticket_management),
-
+    path('auto-cancel/', auto_cancel_expired_reservations),
 ]

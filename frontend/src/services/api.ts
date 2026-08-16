@@ -4,7 +4,6 @@ const customFetch = async (url: string, options: RequestInit = {}) => {
   try {
     const res = await fetch(url, options);
 
-    // عدم ریدایرکت در صورتی که درخواست مربوط به اندپوینت‌های لاگین باشد
     if (res.status === 401 && !url.includes('login')) {
       localStorage.removeItem('access');
       window.location.href = '/login';
@@ -13,7 +12,6 @@ const customFetch = async (url: string, options: RequestInit = {}) => {
 
     return await res.json();
   } catch (error) {
-    console.error('API Error:', error);
     return { error: 'خطا در ارتباط با سرور' };
   }
 };
@@ -103,7 +101,7 @@ export const ticketApi = {
     body: JSON.stringify(data),
   }),
 
-  getReservations: async () => customFetch(`${API_BASE_URL}/reservations/`, {
+  getReservations: async () => customFetch(`${API_BASE_URL}/user/bookings/`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
@@ -143,8 +141,17 @@ export const ticketApi = {
       'Authorization': `Bearer ${localStorage.getItem('access')}`
     },
   }),
+
+  submitReport: async (reservationId: number, reportType: string, description: string) => customFetch(`${API_BASE_URL}/reservations/${reservationId}/report/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('access')}`
+    },
+    body: JSON.stringify({ report_type: reportType, description }),
+  }),
 };
-// Admin API Endpoints
+
 export const adminApi = {
   login: async (data: any) => customFetch(`${API_BASE_URL}/auth/admin-login/`, {
     method: 'POST',
@@ -157,12 +164,16 @@ export const adminApi = {
     headers: { 'Authorization': `Bearer ${localStorage.getItem('access')}` }
   }),
 
+  getReservations: async () => customFetch(`${API_BASE_URL}/admin/management/?action=reservations`, {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('access')}` }
+  }),
+
   getCancellations: async () => customFetch(`${API_BASE_URL}/admin/management/?action=cancellations`, {
     method: 'GET',
     headers: { 'Authorization': `Bearer ${localStorage.getItem('access')}` }
   }),
 
-  // این متد باید اضافه شود
   getUsers: async () => customFetch(`${API_BASE_URL}/admin/management/?action=users`, {
     method: 'GET',
     headers: { 'Authorization': `Bearer ${localStorage.getItem('access')}` }
@@ -177,7 +188,7 @@ export const adminApi = {
     body: JSON.stringify({ target: 'report', id, status, reply })
   }),
 
-  updateReservation: async (id: number, status: string) => customFetch(`${API_BASE_URL}/admin/management/`, {
+  updateReservationStatus: async (id: number, status: string) => customFetch(`${API_BASE_URL}/admin/management/`, {
     method: 'PATCH',
     headers: { 
       'Content-Type': 'application/json',

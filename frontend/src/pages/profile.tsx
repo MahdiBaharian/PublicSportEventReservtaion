@@ -36,7 +36,7 @@ export default function Profile() {
     const loadProfileData = async () => {
       try {
         const response = await userApi.getProfile();
-        if (!response.error && response.data) {
+        if (response && !response.error && response.data) {
           setFormData(prev => ({
             ...prev,
             first_name: response.data.first_name || '',
@@ -45,9 +45,11 @@ export default function Profile() {
             phone_number: response.data.phone_number || '',
             city: response.data.city || '',
           }));
+        } else {
+          setGeneralError(response?.error || 'خطا در دریافت اطلاعات پروفایل');
         }
       } catch (err) {
-        console.error('امکان دریافت اطلاعات پروفایل وجود ندارد', err);
+        setGeneralError('امکان دریافت اطلاعات پروفایل وجود ندارد');
       } finally {
         setIsFetching(false);
       }
@@ -143,7 +145,7 @@ export default function Profile() {
   if (isFetching) {
     return (
       <div className="flex justify-center items-center h-64">
-        <svg className="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
@@ -188,7 +190,7 @@ export default function Profile() {
                 name="first_name" 
                 value={formData.first_name}
                 placeholder="نام خود را وارد کنید"
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.first_name ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.first_name ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'}`}
                 onChange={handleChange}
                 disabled={isLoading}
               />
@@ -202,7 +204,7 @@ export default function Profile() {
                 name="last_name" 
                 value={formData.last_name}
                 placeholder="نام خانوادگی خود را وارد کنید"
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.last_name ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.last_name ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'}`}
                 onChange={handleChange}
                 disabled={isLoading}
               />
@@ -216,7 +218,7 @@ export default function Profile() {
                 name="email" 
                 value={formData.email}
                 placeholder="ایمیل خود را وارد کنید"
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.email ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'}`}
                 dir="ltr"
                 onChange={handleChange}
                 disabled={isLoading}
@@ -231,7 +233,7 @@ export default function Profile() {
                 name="phone_number" 
                 value={formData.phone_number}
                 placeholder="09..."
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.phone_number ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.phone_number ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'}`}
                 dir="ltr"
                 onChange={handleChange}
                 disabled={isLoading}
@@ -246,7 +248,7 @@ export default function Profile() {
                 name="city" 
                 value={formData.city}
                 placeholder="نام شهر خود را وارد کنید"
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.city ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.city ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'}`}
                 onChange={handleChange}
                 disabled={isLoading}
               />
@@ -297,14 +299,14 @@ export default function Profile() {
                     type={showPassword ? "text" : "password"} 
                     name="password" 
                     value={formData.password}
-                    className={`w-full pr-4 pl-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
+                    className={`w-full pr-4 pl-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'}`}
                     dir="ltr"
                     onChange={handleChange} 
                     disabled={isLoading}
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 left-0 pl-4 pr-3 flex items-center text-gray-400 hover:text-primary transition-colors z-10"
+                    className="absolute inset-y-0 left-0 pl-4 pr-3 flex items-center text-gray-400 hover:text-blue-600 transition-colors z-10"
                     onClick={() => setShowPassword(!showPassword)}
                     disabled={isLoading}
                   >
@@ -330,14 +332,14 @@ export default function Profile() {
                     type={showConfirmPassword ? "text" : "password"} 
                     name="confirm_password" 
                     value={formData.confirm_password}
-                    className={`w-full pr-4 pl-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.confirm_password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-primary focus:border-transparent'}`}
+                    className={`w-full pr-4 pl-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all bg-white text-gray-900 ${errors.confirm_password ? 'border-red-500 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'}`}
                     dir="ltr"
                     onChange={handleChange} 
                     disabled={isLoading}
                   />
                   <button
                     type="button"
-                    className="absolute inset-y-0 left-0 pl-4 pr-3 flex items-center text-gray-400 hover:text-primary transition-colors z-10"
+                    className="absolute inset-y-0 left-0 pl-4 pr-3 flex items-center text-gray-400 hover:text-blue-600 transition-colors z-10"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     disabled={isLoading}
                   >
@@ -362,7 +364,7 @@ export default function Profile() {
             <button 
               type="submit"
               disabled={isLoading}
-              className={`w-full md:w-auto px-8 text-white font-bold py-3 rounded-lg transition-colors duration-200 shadow-md flex justify-center items-center gap-2 ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-primary hover:bg-primary-hover'}`}
+              className={`w-full md:w-auto px-8 text-white font-bold py-3 rounded-lg transition-colors duration-200 shadow-md flex justify-center items-center gap-2 ${isLoading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
             >
               {isLoading ? (
                 <>
