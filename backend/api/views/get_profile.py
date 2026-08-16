@@ -23,4 +23,6 @@ def get_profile(request):
         columns = [col[0] for col in cursor.description]
         data = dict(zip(columns, row))
         
+        data['wallet_balance'] = float(data['wallet_balance'])
+        
     return Response({'data': data}, status=200)

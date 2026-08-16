@@ -17,8 +17,8 @@ export default function Layout() {
     const fetchWalletBalance = async () => {
       try {
         const response = await userApi.getProfile();
-        if (!response.error && response.data && response.data.wallet_balance !== undefined) {
-          setWalletBalance(response.data.wallet_balance);
+        if (response && !response.error && response.data && response.data.wallet_balance !== undefined) {
+          setWalletBalance(Number(response.data.wallet_balance));
         }
       } catch (error) {
         console.error('امکان دریافت موجودی کیف پول وجود ندارد', error);
@@ -84,7 +84,7 @@ export default function Layout() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
                 <span className="font-bold text-green-700 text-sm">
-                  {Number(walletBalance).toLocaleString('fa-IR')} تومان
+                  {walletBalance.toLocaleString('fa-IR')} تومان
                 </span>
               </div>
 
@@ -120,7 +120,7 @@ export default function Layout() {
                 <span className="font-bold text-sm">موجودی کیف پول</span>
               </div>
               <span className="font-bold text-green-700 text-sm">
-                {Number(walletBalance).toLocaleString('fa-IR')} تومان
+                {walletBalance.toLocaleString('fa-IR')} تومان
               </span>
             </div>
 
