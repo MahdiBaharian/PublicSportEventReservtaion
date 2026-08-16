@@ -1,16 +1,16 @@
 -- 1. Insert Users
 -- Including an oldest user, a high-spender, users with no reservations, and admins.
-INSERT INTO users (user_id, first_name, last_name, username, email, phone_number, password_hash, role, city, account_status, created_at) VALUES
-(1, 'علی', 'قدیمی', 'ali_old', 'ali.old@example.com', '09110000000', 'hash1', 'spectator', 'تهران', 'active', CURRENT_TIMESTAMP - INTERVAL '5 years'), 
-(2, 'محمد', 'خریدار', 'mohammad_vip', 'mohammad@example.com', '09122222222', 'hash2', 'spectator', 'تهران', 'active', CURRENT_TIMESTAMP - INTERVAL '1 year'), 
-(3, 'زهرا', 'کنسلی', 'zahra_cancel', 'zahra@example.com', '09353333333', 'hash3', 'spectator', 'اصفهان', 'active', CURRENT_TIMESTAMP - INTERVAL '1 year'), 
-(4, 'رضا', 'بدون‌خرید', 'reza_none', 'reza@example.com', '09134444444', 'hash4', 'spectator', 'مشهد', 'active', CURRENT_TIMESTAMP - INTERVAL '1 year'), 
-(5, 'مریم', 'ادمین', 'admin1', 'admin1@tickets.com', '09199999999', 'adminhash1', 'admin', 'تهران', 'active', CURRENT_TIMESTAMP - INTERVAL '2 years'), 
-(6, 'حسین', 'تک‌خرید', 'hossein_one', 'hossein@example.com', '09156666666', 'hash6', 'spectator', 'ری', 'active', CURRENT_TIMESTAMP - INTERVAL '1 year'),
-(7, 'سارا', 'ورزشی', 'sara_sport', 'sara@example.com', '09177777777', 'hash7', 'spectator', 'تبریز', 'active', CURRENT_TIMESTAMP - INTERVAL '6 months'),
-(8, 'امیر', 'تستی', 'amir_test', 'amir@example.com', '09188888888', 'hash8', 'spectator', 'کرج', 'inactive', CURRENT_TIMESTAMP - INTERVAL '3 months'),
-(9, 'پشتیبان', 'دوم', 'admin2', 'admin2@tickets.com', '09100000000', 'adminhash2', 'admin', 'اصفهان', 'active', CURRENT_TIMESTAMP - INTERVAL '1 year'),
-(10, 'نیما', 'جدید', 'nima_new', 'nima@example.com', '09200000000', 'hash10', 'spectator', 'شیراز', 'active', CURRENT_TIMESTAMP);
+INSERT INTO users (first_name, last_name, username, email, phone_number, password_hash, role, city, account_status, created_at) VALUES
+('علی', 'قدیمی', 'ali_old', 'ali.old@example.com', '09110000000', 'hash1', 'spectator', 'تهران', 'active', CURRENT_TIMESTAMP - INTERVAL '5 years'), 
+('محمد', 'خریدار', 'mohammad_vip', 'mohammad@example.com', '09122222222', 'hash2', 'spectator', 'تهران', 'active', CURRENT_TIMESTAMP - INTERVAL '1 year'), 
+('زهرا', 'کنسلی', 'zahra_cancel', 'zahra@example.com', '09353333333', 'hash3', 'spectator', 'اصفهان', 'active', CURRENT_TIMESTAMP - INTERVAL '1 year'), 
+('رضا', 'بدون‌خرید', 'reza_none', 'reza@example.com', '09134444444', 'hash4', 'spectator', 'مشهد', 'active', CURRENT_TIMESTAMP - INTERVAL '1 year'), 
+('مریم', 'ادمین', 'admin1', 'admin1@tickets.com', '09199999999', 'adminhash1', 'admin', 'تهران', 'active', CURRENT_TIMESTAMP - INTERVAL '2 years'), 
+('حسین', 'تک‌خرید', 'hossein_one', 'hossein@example.com', '09156666666', 'hash6', 'spectator', 'ری', 'active', CURRENT_TIMESTAMP - INTERVAL '1 year'),
+('سارا', 'ورزشی', 'sara_sport', 'sara@example.com', '09177777777', 'hash7', 'spectator', 'تبریز', 'active', CURRENT_TIMESTAMP - INTERVAL '6 months'),
+('امیر', 'تستی', 'amir_test', 'amir@example.com', '09188888888', 'hash8', 'spectator', 'کرج', 'inactive', CURRENT_TIMESTAMP - INTERVAL '3 months'),
+('پشتیبان', 'دوم', 'admin2', 'admin2@tickets.com', '09100000000', 'adminhash2', 'admin', 'اصفهان', 'active', CURRENT_TIMESTAMP - INTERVAL '1 year'),
+( 'نیما', 'جدید', 'nima_new', 'nima@example.com', '09200000000', 'hash10', 'spectator', 'شیراز', 'active', CURRENT_TIMESTAMP);
 
 
 -- 2. Insert Tickets

@@ -11,3 +11,4 @@ CREATE INDEX idx_tickets_price ON tickets(price);
 CREATE INDEX idx_tickets_sport_type ON tickets(sport_type);
 CREATE INDEX idx_reservations_reservation_status ON reservations(reservation_status);
 CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_user_id ON users(user_id);

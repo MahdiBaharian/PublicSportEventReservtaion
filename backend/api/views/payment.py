@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.db import connection
+from django.core.cache import cache
 from api.utils import get_user_id_from_request
 import uuid
 
@@ -15,23 +16,31 @@ def payment_for_ticket(request):
     
     with connection.cursor() as cursor:
         cursor.execute("""
-            SELECT r.quantity, t.price, r.reservation_status, r.ticket_id
+            SELECT r.quantity, t.price, r.reservation_status, r.ticket_id,
+                   EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - r.reserved_at)) / 60 AS minutes_passed
             FROM reservations r
             JOIN tickets t ON r.ticket_id = t.ticket_id
-            WHERE r.reservation_id = %s AND r.user_id = %s
-              AND r.reserved_at >= CURRENT_TIMESTAMP - INTERVAL '10 minutes';
+            WHERE r.reservation_id = %s AND r.user_id = %s FOR UPDATE;
         """, [reservation_id, user_id])
         
         row = cursor.fetchone()
         
         if not row:
-            cursor.execute("UPDATE reservations SET reservation_status = 'cancelled' WHERE reservation_id = %s AND reservation_status = 'reserved';", [reservation_id])
-            return Response({'error': 'رزرو یافت نشد یا زمان ۱۰ دقیقه‌ای پرداخت منقضی شده است.'}, status=400)
+            return Response({'error': 'رزرو یافت نشد.'}, status=404)
             
-        if row[2] != 'reserved':
-            return Response({'error': 'این رزرو قبلاً پرداخت یا لغو شده است.'}, status=400)
+        quantity, price, status, ticket_id, minutes_passed = row
+        
+        if status == 'paid':
+            return Response({'error': 'این بلیت قبلاً پرداخت شده است.'}, status=400)
+        if status == 'cancelled':
+            return Response({'error': 'این بلیت لغو شده است.'}, status=400)
             
-        quantity, price, _, ticket_id = row
+        if minutes_passed > 10:
+            cursor.execute("UPDATE reservations SET reservation_status = 'cancelled' WHERE reservation_id = %s;", [reservation_id])
+            cursor.execute("UPDATE tickets SET remaining_capacity = remaining_capacity + %s WHERE ticket_id = %s;", [quantity, ticket_id])
+            cache.delete(f'user_bookings_{user_id}')
+            return Response({'error': 'زمان ۱۰ دقیقه‌ای پرداخت منقضی شده است.'}, status=400)
+            
         total_amount = quantity * price
         tracking_code = str(uuid.uuid4())
         
@@ -42,10 +51,10 @@ def payment_for_ticket(request):
         
         cursor.execute("UPDATE reservations SET reservation_status = 'paid' WHERE reservation_id = %s;", [reservation_id])
         
-        cursor.execute("UPDATE tickets SET remaining_capacity = remaining_capacity - %s WHERE ticket_id = %s;", [quantity, ticket_id])
-        
-        return Response({
-            'message': 'پرداخت با موفقیت انجام شد و بلیت نهایی صادر گردید.',
-            'tracking_code': tracking_code,
-            'amount_paid': total_amount
-        }, status=200)
+    cache.delete(f'user_bookings_{user_id}')
+    
+    return Response({
+        'message': 'پرداخت با موفقیت انجام شد و بلیت نهایی صادر گردید.',
+        'tracking_code': tracking_code,
+        'amount_paid': total_amount
+    }, status=200)

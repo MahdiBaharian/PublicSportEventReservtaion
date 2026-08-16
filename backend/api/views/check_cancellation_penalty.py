@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.db import connection
+from django.core.cache import cache
 from api.utils import get_user_id_from_request
 
 @api_view(['GET', 'POST'])
@@ -16,7 +17,7 @@ def check_cancellation_penalty(request, reservation_id):
             FROM reservations r
             JOIN tickets t ON r.ticket_id = t.ticket_id
             JOIN payments p ON r.reservation_id = p.reservation_id
-            WHERE r.reservation_id = %s AND r.user_id = %s AND p.transaction_status = 'success';
+            WHERE r.reservation_id = %s AND r.user_id = %s AND p.transaction_status = 'success' FOR UPDATE;
         """, [reservation_id, user_id])
         
         row = cursor.fetchone()
@@ -44,8 +45,12 @@ def check_cancellation_penalty(request, reservation_id):
         elif request.method == 'POST':
             cursor.execute("UPDATE reservations SET reservation_status = 'cancelled' WHERE reservation_id = %s;", [reservation_id])
             cursor.execute("UPDATE tickets SET remaining_capacity = remaining_capacity + %s WHERE ticket_id = %s;", [quantity, ticket_id])
+            cursor.execute("UPDATE users SET wallet_balance = COALESCE(wallet_balance, 0) + %s WHERE user_id = %s;", [refund_amount, user_id])
             
-            return Response({
-                'message': 'بلیت با موفقیت لغو شد و مبلغ به کیف پول مسترد گردید.',
-                'refunded_amount': refund_amount
-            }, status=200)
+    cache_key = f'user_bookings_{user_id}'
+    cache.delete(cache_key)
+            
+    return Response({
+        'message': 'بلیت با موفقیت لغو شد و مبلغ به کیف پول مسترد گردید.',
+        'refunded_amount': refund_amount
+    }, status=200)
