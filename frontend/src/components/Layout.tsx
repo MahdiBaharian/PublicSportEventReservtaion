@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
+import { userApi } from '../services/api'; 
 
 export default function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const location = useLocation();
 
   const navLinks = [
@@ -10,6 +12,21 @@ export default function Layout() {
     { name: 'جستجوی بلیت', path: '/dashboard/search' },
     { name: 'بلیت‌های من', path: '/dashboard/reservations' },
   ];
+
+  useEffect(() => {
+    const fetchWalletBalance = async () => {
+      try {
+        const response = await userApi.getProfile();
+        if (!response.error && response.data && response.data.wallet_balance !== undefined) {
+          setWalletBalance(response.data.wallet_balance);
+        }
+      } catch (error) {
+        console.error('امکان دریافت موجودی کیف پول وجود ندارد', error);
+      }
+    };
+
+    fetchWalletBalance();
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col" dir="rtl">
@@ -61,6 +78,16 @@ export default function Layout() {
             </div>
 
             <div className="flex-1 flex items-center justify-end gap-3 sm:gap-5">
+              
+              <div className="hidden sm:flex items-center gap-2 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200" title="موجودی کیف پول">
+                <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span className="font-bold text-green-700 text-sm">
+                  {Number(walletBalance).toLocaleString('fa-IR')} تومان
+                </span>
+              </div>
+
               <Link
                 to="/dashboard/reservations"
                 className="relative p-2 text-gray-400 hover:text-primary transition-colors"
@@ -84,6 +111,19 @@ export default function Layout() {
 
         <div className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'} border-t border-gray-100 bg-white absolute w-full z-40`}>
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 shadow-lg">
+            
+            <div className="px-3 py-3 mb-2 flex items-center justify-between bg-green-50 rounded-md border border-green-100">
+              <div className="flex items-center gap-2 text-green-700">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                <span className="font-bold text-sm">موجودی کیف پول</span>
+              </div>
+              <span className="font-bold text-green-700 text-sm">
+                {Number(walletBalance).toLocaleString('fa-IR')} تومان
+              </span>
+            </div>
+
             {navLinks.map((link) => (
               <Link
                 key={link.path}

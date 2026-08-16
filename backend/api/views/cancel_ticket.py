@@ -23,10 +23,18 @@ def cancel_ticket_and_refund(request, reservation_id):
         if not row or row[2] == 'cancelled':
             return Response({'error': 'Invalid or already cancelled reservation.'}, status=400)
 
+        amount = row[1] or 0
+        status = row[2]
+        ticket_id = row[3]
+        quantity = row[4]
+
         cursor.execute("UPDATE reservations SET reservation_status = 'cancelled' WHERE reservation_id = %s;", [reservation_id])
-        cursor.execute("UPDATE tickets SET remaining_capacity = remaining_capacity + %s WHERE ticket_id = %s;", [row[4], row[3]])
+        cursor.execute("UPDATE tickets SET remaining_capacity = remaining_capacity + %s WHERE ticket_id = %s;", [quantity, ticket_id])
+
+        if status == 'paid' and amount > 0:
+            cursor.execute("UPDATE users SET wallet_balance = wallet_balance + %s WHERE user_id = %s;", [amount, user_id])
 
     cache_key = f'user_bookings_{user_id}'
     cache.delete(cache_key)
 
-    return Response({'message': 'Ticket cancelled successfully and refund initiated.'}, status=200)
+    return Response({'message': 'Ticket cancelled successfully and refund added to wallet.'}, status=200)
